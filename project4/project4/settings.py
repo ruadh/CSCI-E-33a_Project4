@@ -120,3 +120,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# JESSICA'S UPDATES BEGIN HERE
+
+# System's default display timezone - can be overriden by user preference
+DEFAULT_TIMEZONE = 'America/New_York'
+
+USE_THOUSAND_SEPARATOR = True

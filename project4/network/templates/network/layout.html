@@ -46,4 +46,9 @@
             {% endblock %}
         </div>
     </body>
+    <footer>
+        {% if user.is_authenticated %}
+            <p>Times shown in {{user.timezone}}</p>
+        {% endif %}
+    </footer>
 </html>
