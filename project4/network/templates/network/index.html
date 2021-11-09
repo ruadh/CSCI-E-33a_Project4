@@ -1,8 +1,19 @@
 {% extends "network/layout.html" %}
 
+{% block post_form %}
+<div id="new-post">
+    <h3>New Post</h3>
+    <form id="post-form">
+        <textarea class="form-control" id="compose-post" placeholder="What's on your mind?"></textarea>
+        <input type="submit" id="submit-post" class="btn btn-primary"/>
+    </form>
+</div>
+{% endblock %}
+
 {% block body %}
     <h2>Posts</h2>
     {% for post in posts %}
-    <li>A post</li>
+    <li>{{post.content}}</li>
     {% endfor %}
 {% endblock %}
+
