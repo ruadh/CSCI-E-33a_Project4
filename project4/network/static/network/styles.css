@@ -1,5 +1,14 @@
 .post-row {
     padding: 10px;
-    border: solid black 1px;
-    margin: 5px;
+    background-color: gainsboro;
+    margin: 10px;
+}
+
+.post-content {
+    font-style: italic;
+    font-size: x-large;
+}
+
+.like-button {
+    color: red;
 }

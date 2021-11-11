@@ -1,30 +1,49 @@
 {% extends "network/layout.html" %}
 
-{% block post_form %}
-<div id="new-post">
-    <h3>New Post</h3>
-    <form id="post-form">
-        <textarea class="form-control" id="compose-post" placeholder="What's on your mind?"></textarea>
-        <input type="submit" id="submit-post" class="btn btn-primary"/>
-    </form>
-</div>
-{% endblock %}
-
 {% block body %}
-    <div id="posts-view">
+
+    {# TO DO:  DO I STILL NEED THIS? #}
+    {# Make authenticated status available to JavasScript #}
+    {{ user.is_authenticated|json_script:"authenticated" }}
+
+    {% if user.is_authenticated %}
+        <div id="new-post">
+            <form action="{% url 'post_add' %}" method="post">
+                {% csrf_token %}
+                {{ post_form }}
+                <input id="submit-post" class="btn btn-primary" type="submit">
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="body" id="posts-list">
+        <h2>Posts - Django</h2>
+        {% for post in page %}
+        <div class="post-row" data-post="{{post.id}}">
+            <p class="post-content">{{post.content}}</p>  
+            <p>By {{post.author}} on {{post.timestamp}} {{post.likes_count}} Likes</p>
+            {% if post.author != request.user %}
+                <button class="like-button" data-post="{{post.id}}">Like/Unlike</button>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {# CITATION:  based on the Vacara example in Vlad's section #}
+        <nav role="navigation">
+            <ul class="pagination">
+            {% if page.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{page.previous_page_number}}">Previous</a></li>
+            {% endif %}
+
+            <li class="page-item"><a class="page-link" href="?page={{page.number}}">{{page.number}}</a></li>
+
+            {% if page.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{page.next_page_number}}">Next</a></li>
+            {% endif %}
+            </ul>
+        </nav>
     </div>
-{% endblock %}
 
 
-{% block old_body %}
-    <h2>Posts - Django</h2>
-    {% for post in posts %}
-    <div>
-        {{post.content}}  ({{post.id}})
-        <form class="like-form">
-            <input type="submit" id="submit-like" class="btn btn-primary"/>
-        </form>
-    </div>
-    {% endfor %}
 {% endblock %}
 

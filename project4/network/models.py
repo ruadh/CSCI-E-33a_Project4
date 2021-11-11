@@ -34,6 +34,7 @@ class Post(models.Model):
     def likes_count(self):
         return self.likes.count()
 
+    # TO DO:  Do I still need this?
     # CITATION: Adapted from the Project 3 Email model. 
     def serialize(self):
         return {

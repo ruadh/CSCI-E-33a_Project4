@@ -42,19 +42,10 @@
             </div>
           </nav>
 
-        {% if user.is_authenticated %}
-            {{ user.is_authenticated|json_script:"authenticated" }}
-        {% endif %}
-        
-        <div class="body">
-            {% block post_form %}
-            {% endblock %}
-        </div>
+        <!-- Content brought in from templates -->
+        {% block body %}
+        {% endblock %}
 
-        <div class="body">
-            {% block body %}
-            {% endblock %}
-        </div>
     </body>
     <footer>
         {% if user.is_authenticated %}

@@ -1,48 +1,34 @@
 import json
+
 from django import forms
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Post, User, Like, Follow
 
+# TO DO:  MOVE TO SETTINGS
+# Set the number of posts per page
+PAGE_SIZE=5
 
 # FORM CLASSES
 
 # New post form
 class PostForm(forms.ModelForm):
-    model = Post
-    fields = ['content']
-    widgets = {
-        'content': forms.Textarea(
-                attrs={'placeholder': 'What\'s on your mind?'}),
-    }
-
-# Like form
-
-class LikeForm(forms.ModelForm):
     class Meta:
-        model = Like
-        fields = ['liker', 'post']
+        model = Post
+        fields = ['content']
         widgets = {
-            'liker': forms.HiddenInput,
-            'post': forms.HiddenInput
+            'content': forms.Textarea(
+                    attrs={'placeholder': 'What\'s on your mind?'}),
         }
 
-# TO DO:  Follow form
-
-# class FollowForm(forms.ModelForm):
-#     class Meta:
-#         model = Follow
-#         fields = ['follower', 'followed']
-#         widgets = {
-#             'follower': forms.HiddenInput,
-#             'followed': forms.HiddenInput
-#         }
 
 
 # AUTHENTICATION (provided)
@@ -103,66 +89,65 @@ def register(request):
 
 # POSTS
 
-# Display the home page
-
-def index(request, page = 1, title='Recent Posts'):
-    # TO DO:  We need to do this with Javascript
-    # TO DO:  It should be paginated
-    posts = list_posts(request, page)
-    return render(request, 'network/index.html', {'posts': posts, 'title': title, 'page': page})
+# Display the home page with the first page of posts
+def index(request):
+    posts = Post.objects.all().order_by('-timestamp').all()
+    return list_posts(request, posts, 'Recent Posts', show_form=True)
 
 
 # API:  Return a specific page's worth of posts
-# CITATION:  Adapted from function 'mailbox' from the Project 3 starter files
+# CITATION:  Adapted from Vancara example project in Vlad's section
+# TO DO:  Figure out what show-form is
+def list_posts(request, posts, title, show_form):
+    # Determine the desired page number from the request
+    page_num = request.GET.get('page', 1)
+    # Create the paginator object
+    paginator = Paginator(posts, PAGE_SIZE)
+    # Get the specific page's worth of posts
+    page = paginator.page(page_num)
+    post_form = PostForm()
+    return render(request, 'network/index.html', {'page': page, 'title':title, 'show_form': show_form, 'post_form': post_form})
 
-def list_posts(request, page=1, title='Recent Posts'):
-    # TO DO:  Do the query and paginate it
-    posts = Post.objects.all().order_by('-timestamp').all()
-    return JsonResponse([post.serialize() for post in posts], safe=False)
 
+# Create a post
+# NOTE: I opted to handle this with Django instead of JS, since most users will expect to see a refreshed list
+#       of current posts with their new post on top after submitting.  (Like and follow would be expected to happen in situ.) 
 
-# API:  Create a post
-# CITATION:  Adapted from function 'compose' from the Project 3 starter files
-
-@csrf_exempt
 @login_required
-def submit_post(request):
-
-    # Make sure the request is a POST
-    if request.method != 'POST':
-        return JsonResponse({
-            'error': 'POST request required.'
-            }, status=400)
-
-    # Double-check that the content was provided
-    # (JS shouldn't allow submission without it, but just to be safe)
-    data = json.loads(request.body)
-
-    # Make sure that there is actual (non-whitespace) content
-    content = data.get('content').strip()
-    if content == '':
-        return JsonResponse({
-            'error': 'Content required.'
-        }, status=400)
-
-    # Create the post
-    post = Post(
-            author=request.user,
-            content = content
-            )
-    post.save()
-
-    return JsonResponse({'message': 'Post saved successfully.'}, status=201)
+def post_add(request):
+    # If we're posting data, attempt to process the form
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return HttpResponseRedirect(reverse('index'))
+        else:
+            messages.error(
+                request, 'Invalid form entry.  Please fix the issues below and resubmit.')
+            return render(request, 'network/index.html', {
+                'post_form': form
+            })
+    # It somehow we call this function without posting, load the page with a blank new listing form
+    else:
+        return render(request, 'network/index.html', {
+            'post_form': PostForm()
+        })
 
 
 # Like or unlike a post
+# TO DO
 
 @login_required
 def toggle_like(request):
-    like = Like.objects.get(liker=request.user) # Is this going to work?
+    print('function toggle_like')
+    # like = Like.objects.get(liker=request.user) # Is this going to work?
+    # print(like.length)
     # If the user already likes this post, delete the like record
     # Otherwise, create a like record
-    pass
+    # return JsonResponse({'message': 'Like updated successfully.'}, status=201)
+    return JsonResponse({'message': 'function toggle_like'}, status=201)
 
 
 
