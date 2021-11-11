@@ -11,9 +11,20 @@
 {% endblock %}
 
 {% block body %}
-    <h2>Posts</h2>
+    <div id="posts-view">
+    </div>
+{% endblock %}
+
+
+{% block old_body %}
+    <h2>Posts - Django</h2>
     {% for post in posts %}
-    <li>{{post.content}}</li>
+    <div>
+        {{post.content}}  ({{post.id}})
+        <form class="like-form">
+            <input type="submit" id="submit-like" class="btn btn-primary"/>
+        </form>
+    </div>
     {% endfor %}
 {% endblock %}
 

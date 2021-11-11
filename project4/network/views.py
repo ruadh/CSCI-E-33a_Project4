@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Post, User
+from .models import Post, User, Like, Follow
 
 
 # FORM CLASSES
@@ -24,14 +24,14 @@ class PostForm(forms.ModelForm):
 
 # Like form
 
-# class LikeForm(forms.ModelForm):
-#     class Meta:
-#         model = Like
-#         fields = ['liker', 'post']
-#         widgets = {
-#             'liker': forms.HiddenInput,
-#             'post': forms.HiddenInput
-#         }
+class LikeForm(forms.ModelForm):
+    class Meta:
+        model = Like
+        fields = ['liker', 'post']
+        widgets = {
+            'liker': forms.HiddenInput,
+            'post': forms.HiddenInput
+        }
 
 # TO DO:  Follow form
 
@@ -103,17 +103,26 @@ def register(request):
 
 # POSTS
 
-# Display a list of posts
+# Display the home page
 
-def index(request, title='Recent Posts'):
+def index(request, page = 1, title='Recent Posts'):
     # TO DO:  We need to do this with Javascript
     # TO DO:  It should be paginated
-    posts = Post.objects.all()
-    return render(request, 'network/index.html', {'posts': posts, 'title': title})
+    posts = list_posts(request, page)
+    return render(request, 'network/index.html', {'posts': posts, 'title': title, 'page': page})
 
 
-# Create a post
-# Adapted from 'compose' from the Project 3 starter files
+# API:  Return a specific page's worth of posts
+# CITATION:  Adapted from function 'mailbox' from the Project 3 starter files
+
+def list_posts(request, page=1, title='Recent Posts'):
+    # TO DO:  Do the query and paginate it
+    posts = Post.objects.all().order_by('-timestamp').all()
+    return JsonResponse([post.serialize() for post in posts], safe=False)
+
+
+# API:  Create a post
+# CITATION:  Adapted from function 'compose' from the Project 3 starter files
 
 @csrf_exempt
 @login_required

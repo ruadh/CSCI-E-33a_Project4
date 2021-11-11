@@ -29,10 +29,22 @@ class Post(models.Model):
 
     def __str__(self):
         return f'{self.author} @ {self.timestamp.strftime("%x %X")}'
-
+   
     @property
     def likes_count(self):
         return self.likes.count()
+
+    # CITATION: Adapted from the Project 3 Email model. 
+    def serialize(self):
+        return {
+            "id": self.id,
+            "author": self.author.username,
+            "content": self.content,
+            "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
+            "likes_count": self.likes_count
+        }
+
+
 
 
 class Like(models.Model):
