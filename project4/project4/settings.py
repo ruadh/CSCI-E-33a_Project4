@@ -128,3 +128,6 @@ STATIC_URL = '/static/'
 DEFAULT_TIMEZONE = 'America/New_York'
 
 USE_THOUSAND_SEPARATOR = True
+
+# Added per:  https://koenwoortman.com/python-django-auto-created-primary-key-used-when-not-defining-primary-key-type/
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

@@ -2,29 +2,42 @@
 
 {% block body %}
 
-    {# TO DO:  DO I STILL NEED THIS? #}
-    {# Make authenticated status available to JavasScript #}
-    {{ user.is_authenticated|json_script:"authenticated" }}
-
-    {% if user.is_authenticated %}
-        <div id="new-post">
-            <form action="{% url 'post_add' %}" method="post">
-                {% csrf_token %}
-                {{ post_form }}
-                <input id="submit-post" class="btn btn-primary" type="submit">
-            </form>
+    {# If we're on the profile page, show the profile.  Otherwise, show the post form to authenticated users #}
+    {% if profile %}
+        <div class="profile" id="user-profile">
+            <h2>{{profile.username}}</h2>
+            <p>Followers:  {{profile.followers_count}}</p>
+            <p>Following:  {{profile.following_count}}</p>
+            {% if profile != user and user.is_authenticated %}
+                <button id="follow-button" data-user="{{profile.id}}">Follow/Unfollow</button>
+            {% endif %}
         </div>
+    {% else %}
+        {% if user.is_authenticated %}
+            <div id="new-post">
+                <form action="{% url 'post_add' %}" method="post">
+                    {% csrf_token %}
+                    {{ post_form }}
+                    <input id="submit-post" class="btn btn-primary" type="submit">
+                </form>
+            </div>
+        {% endif %}
     {% endif %}
 
     <div class="body" id="posts-list">
-        <h2>Posts - Django</h2>
+
+        <h2>{{title}}</h2>
         {% for post in page %}
         <div class="post-row" data-post="{{post.id}}">
             <p class="post-content">{{post.content}}</p>  
-            <p>By {{post.author}} on {{post.timestamp}} {{post.likes_count}} Likes</p>
-            {% if post.author != request.user %}
-                <button class="like-button" data-post="{{post.id}}">Like/Unlike</button>
-            {% endif %}
+            <p>By <a href="{% url 'view_profile' post.author.id %}">{{post.author}}</a> on {{post.timestamp}}</p>
+            <p>{{post.likes_count}} Likes
+                {% if post.author != request.user and user.is_authenticated %}
+                    <button class="like-button" data-post="{{post.id}}">Like/Unlike</button>
+                {% elif post.author == request.user and user.is_authenticated %}
+                    <button class="edit-button" data-post="{{post.id}}">Edit</button>
+                {% endif %}
+           </p>    
         </div>
         {% endfor %}
 

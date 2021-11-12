@@ -12,3 +12,9 @@
 .like-button {
     color: red;
 }
+
+.profile {
+    background-color: aliceblue;
+    padding: 20px;
+    margin: 40px 10px 40px 10px;
+}
