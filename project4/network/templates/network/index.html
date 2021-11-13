@@ -6,10 +6,16 @@
     {% if profile %}
         <div class="profile" id="user-profile">
             <h2>{{profile.username}}</h2>
-            <p>Followers:  {{profile.followers_count}}</p>
-            <p>Following:  {{profile.following_count}}</p>
+            <p>Followers:  <span id="followers-count">{{profile.followers_count}}</span></p>
+            <p>Following:  <span id="following-count">{{profile.following_count}}</span></p>
             {% if profile != user and user.is_authenticated %}
-                <button id="follow-button" data-user="{{profile.id}}">Follow/Unfollow</button>
+                <button id="follow-button" data-user="{{profile.id}}">
+                    {% if user in profile.followers.all %}
+                        Unfollow
+                    {% else %}
+                        Follow
+                    {% endif %}
+                </button>
             {% endif %}
         </div>
     {% else %}
@@ -29,11 +35,18 @@
         <h2>{{title}}</h2>
         {% for post in page %}
         <div class="post-row" data-post="{{post.id}}">
-            <p class="post-content">{{post.content}}</p>  
+            <div class="post-content">{{post.content}}</div>  
             <p>By <a href="{% url 'view_profile' post.author.id %}">{{post.author}}</a> on {{post.timestamp}}</p>
-            <p>{{post.likes_count}} Likes
+            <p><span class="likes-count">{{post.likes_count}}</span> Likes
                 {% if post.author != request.user and user.is_authenticated %}
-                    <button class="like-button" data-post="{{post.id}}">Like/Unlike</button>
+                    {# TO DO:  replace with styled buttons instead of button text #}
+                    <button class="like-button" data-post="{{post.id}}">
+                        {% if user in post.liker.all %}
+                            Unlike 
+                        {% else %}
+                            Like
+                        {% endif %}
+                    </button>
                 {% elif post.author == request.user and user.is_authenticated %}
                     <button class="edit-button" data-post="{{post.id}}">Edit</button>
                 {% endif %}

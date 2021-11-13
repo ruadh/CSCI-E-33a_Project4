@@ -1,5 +1,8 @@
 {% load static %}
 
+{# CITATION: Make user ID available to JS per https://stackoverflow.com/a/62592463 #}
+{{ request.user.id|json_script:"user_id" }}
+
 <!DOCTYPE html>
 <html lang="en">
     <head>

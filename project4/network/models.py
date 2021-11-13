@@ -13,7 +13,7 @@ class User(AbstractUser):
     timezones = tuple(zip(pytz.all_timezones, pytz.all_timezones))
     timezone = models.CharField(max_length=32, choices=timezones,
                                 default=settings.DEFAULT_TIMEZONE)
-    following = models.ManyToManyField("User", blank=True, related_name='followers')
+    following = models.ManyToManyField('User', blank=True, related_name='followers')
 
     @property
     def followers_count(self):
@@ -25,6 +25,17 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.username}'
+
+    # CITATION:  Adapted from provided models.py in Project 3
+    def serialize(self):
+        return {
+            'id': self.id,
+            # TO DO:  Are the counts needed, or should we just have JS count the members following?
+            'followers_count': self.followers_count,
+            'following_count': self.following_count,
+            # 'followings': [user.id for user in self.following.all()],
+            'followers': [user.id for user in self.followers.all()]
+        }
 
 
 class Post(models.Model):
@@ -39,3 +50,15 @@ class Post(models.Model):
     # @property
     def likes_count(self):
         return self.liker.count()
+
+    # CITATION:  Adapted from provided models.py in Project 3
+    def serialize(self):
+        return {
+            'id': self.id,
+            'author': self.author.username,
+            'content': self.content,
+            'timestamp': self.timestamp.strftime('%x %X'),
+            'likers': [user.id for user in self.liker.all()],
+            # TO DO:  Why does this have to be a method, while followers count doesn't?
+            'likes_count': self.likes_count()
+        }
