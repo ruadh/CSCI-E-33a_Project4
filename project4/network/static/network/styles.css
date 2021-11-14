@@ -1,7 +1,13 @@
-.post-row {
-    padding: 10px;
-    background-color: gainsboro;
+.post-row, #new-post {
+    /* padding: 10px; */
     margin: 10px;
+}
+
+.post-row {
+    background-color: #E6E6E6;
+    padding: 10px;
+    border-radius: 3px;
+    /* margin: 0 auto 0 auto; */
 }
 
 .post-content {
@@ -10,7 +16,43 @@
 }
 
 .profile {
-    background-color: aliceblue;
+    /* background-color: aliceblue; */
     padding: 20px;
     margin: 40px 10px 40px 10px;
+    /* --bs-bg-opacity: .1; */
+    border-radius: 3px;
 }
+
+#user-profile img {
+    max-width: 75%;
+    border-radius: 10px;
+}
+
+/* New Post Form */
+
+#submit-post {
+    display: block;
+    margin-top: 1%;
+}
+
+#new-post label{
+    display: none;
+}
+
+#new-post textarea{
+    min-width: 100%;
+    /* TO DO:  Think about padding units */
+    padding:  1%;
+}
+
+
+/* RESPONSIVE - LARGER SCREENS */
+
+@media(min-width: 720px) {
+
+    #new-post textarea{
+        max-height: 10%;
+    }
+}
+
+
