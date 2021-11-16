@@ -1,4 +1,5 @@
 {% load static %}
+{% load tz %}
 
 {# CITATION: Make user ID available to JS per https://stackoverflow.com/a/62592463 #}
 {{ request.user.id|json_script:"user_id" }}
@@ -54,6 +55,8 @@
     <footer>
         {% if user.is_authenticated %}
             <p>Time zone: {{user.timezone}}</p>
+        {% else %}
+            <p>Time zone: UTC</p> 
         {% endif %}
     </footer>
 </html>

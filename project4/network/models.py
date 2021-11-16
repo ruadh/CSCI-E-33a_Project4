@@ -1,10 +1,10 @@
-from django.db.models.aggregates import Count
+# from django.db.models.aggregates import Count
 from django.db.models.fields import CharField
 import pytz
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models import Max
+# from django.db.models import Max
 
 
 class User(AbstractUser):
@@ -30,10 +30,8 @@ class User(AbstractUser):
     def serialize(self):
         return {
             'id': self.id,
-            # TO DO:  Are the counts needed, or should we just have JS count the members following?
             'followers_count': self.followers_count,
             'following_count': self.following_count,
-            # 'followings': [user.id for user in self.following.all()],
             'followers': [user.id for user in self.followers.all()]
         }
 

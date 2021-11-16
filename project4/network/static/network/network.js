@@ -2,7 +2,6 @@
 
 // Initial page load
 document.addEventListener('DOMContentLoaded', function () {
-  // alert('DOMContentLoaded');
 
   // Add listeners to the Like/Unlike buttons
   document.querySelectorAll('.like-button').forEach(button => {
@@ -41,17 +40,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         // If successful, receive the new post stats and update what the user sees
-        // TO DO:  see if we can get the exact error code instead of checking for whether the error exists
         if (post.error == undefined){
           // Style the Like Button to reflect the new like status
-          // TO DO:  Replace button text with icons?
           const user_id = JSON.parse(document.getElementById('user_id').textContent);
-          if (user_id in post.likers) {
+          if (post.likers.includes(user_id)) {
             // Style the button for UNLIKE
-            likeButton.innerHTML = 'Unlike';
+            likeButton.innerHTML = '&#10084;&#65039; <span class="sr-only">Unlike this post</span>';
           } else {
             // Style the button for LIKE
-            likeButton.innerHTML = 'Like';
+            likeButton.innerHTML = '&#129293; <span class="sr-only">Like this post</span>';
           }
           // Update the likes count
           document.querySelector(`.post-row[data-post="${id}"] .likes-count`).innerHTML = post.likes_count
@@ -88,13 +85,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         // If successful, receive the new following stats and update what the user sees
-        // TO DO:  see if we can get the exact error code instead of checking for whether the error exists
         if (profile.error == undefined){
 
           // Style the Follow/Unfollow button to reflect the new following status
           // TO DO:  Replace button text with icons?
           const user_id = JSON.parse(document.getElementById('user_id').textContent);
-          if (user_id in profile.followers) {
+          if (profile.followers.includes(user_id)) {
             // Style the button for UNFOLLOW
             followButton.innerHTML = 'Unfollow';
           } else {
@@ -102,15 +98,15 @@ document.addEventListener('DOMContentLoaded', function () {
             followButton.innerHTML = 'Follow';
           }
           // Update the follow counts
-          document.querySelector('#followers-count').innerHTML = profile.followers_count
-          document.querySelector('#following-count').innerHTML = profile.following_count
+          document.querySelector('#followers-count').innerHTML = profile.followers_count;
+          document.querySelector('#following-count').innerHTML = profile.following_count;
 
         } else {
           alert(profile.error);
           // TO DO:  Show an on-screen 'please try again' message
         }
 
-        // Reenable the like/dislike button
+        // Reenable the follow/unfollow button
         followButton.disabled = false;
       });
 }
@@ -130,8 +126,6 @@ document.addEventListener('DOMContentLoaded', function () {
   // Replace the content with an edit box, populated with the post contents
   const contents = document.querySelector(`.post-row[data-post="${id}"] .post-content`);
   const contentsValue = contents.innerHTML;
-  // TO DO:  Do we still need edit-content class?
-  // contents.classList.add('edit-content');
   contents.innerHTML = '';
   const child = document.createElement('textarea');
   child.value = contentsValue;
@@ -140,6 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Add a save button
   const saveButton = document.createElement('button');
+  saveButton.classList.add('btn','btn-primary');
   saveButton.id = 'save-button';
   saveButton.innerHTML = 'Save';
   saveButton.addEventListener('click', () => updatePost(id));
@@ -154,8 +149,6 @@ document.addEventListener('DOMContentLoaded', function () {
  */
 
 // CITATION:  based on markRead from provided inbox.js in Project 3
-
-// TO DO:  Make sure that we disable & reenable buttons as needed
 
 function updatePost(id) {
 
@@ -176,9 +169,7 @@ function updatePost(id) {
 
 
     // If successful, update the page
-    // TO DO:  see if we can get the exact error code instead of checking for whether the error exists
     if (post.error == undefined){
-      // alert('success!');
 
       // Replace the "form" with the updated post contents
       const contents = document.querySelector(`.post-row[data-post="${id}"] .post-content`);

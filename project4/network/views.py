@@ -1,26 +1,25 @@
 import json
+import pytz
 
 from django import forms
 from django.db import IntegrityError
-from django.forms.models import InlineForeignKeyField
+# from django.forms.models import InlineForeignKeyField
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 
 from .models import Post, User
-# from .models import Post, User, Like, Follow
 
-# TEMP FOR TESTING
+# TEMP FOR TESTING:  supports adding pauses to API calls
 import time
 
-# TO DO:  MOVE TO SETTINGS
-# Set the number of posts per page
-PAGE_SIZE = 10
 
 # FORM CLASSES
 
@@ -51,6 +50,8 @@ def login_view(request):
         # Check if authentication successful
         if user is not None:
             login(request, user)
+            # Set the display timezone to the user's chosen time
+            timezone.activate(user.timezone)
             return HttpResponseRedirect(reverse('index'))
         else:
             return render(request, 'network/login.html', {
@@ -66,6 +67,9 @@ def logout_view(request):
 
 
 def register(request):
+    # Gather a list of timezones to populate the timezone choice field in the form
+    timezones = pytz.common_timezones
+
     if request.method == 'POST':
         username = request.POST['username']
         email = request.POST['email']
@@ -75,21 +79,37 @@ def register(request):
         confirmation = request.POST['confirmation']
         if password != confirmation:
             return render(request, 'network/register.html', {
-                'message': 'Passwords must match.'
+                'message': 'Passwords must match.',
+                'timezones': timezones,
+                'default_timezone': settings.DEFAULT_TIMEZONE
+            })
+        if password == '':
+            messages.error(request, 'Password cannot be blank')
+            return render(request, 'auctions/register.html', {
+                'timezones': timezones,
+                'default_timezone': settings.DEFAULT_TIMEZONE
             })
 
         # Attempt to create new user
         try:
             user = User.objects.create_user(username, email, password)
+            user.timezone = request.POST['user_timezone']
             user.save()
         except IntegrityError:
             return render(request, 'network/register.html', {
-                'message': 'Username already taken.'
+                'message': 'Username already taken.',
+                'timezones': timezones,
+                'default_timezone': settings.DEFAULT_TIMEZONE
             })
         login(request, user)
+        # Set the display timezone to the user's chosen time
+        timezone.activate(user.timezone)
         return HttpResponseRedirect(reverse('index'))
     else:
-        return render(request, 'network/register.html')
+        return render(request, 'network/register.html', {
+            'timezones': timezones,
+            'default_timezone': settings.DEFAULT_TIMEZONE
+        })
 
 
 # POSTS
@@ -107,7 +127,11 @@ def following_posts(request):
     # CITATION:  I got help with the syntax from the Django documentation and also https://stackoverflow.com/a/45768219
     posts = Post.objects.filter(
         author__in=request.user.following.all()).order_by('-timestamp').all()
-    return paginate_posts(request, '', posts, 'Recent Posts by Users I\'m Following')
+    if posts.count() > 0:
+        title = 'Recent Posts by Users I\'m Following'
+    else:
+        title = 'You are not following any users'
+    return paginate_posts(request, '', posts, title )
 
 
 # Paginate a list of posts
@@ -116,7 +140,7 @@ def paginate_posts(request, profile, posts, title):
     # Determine the desired page number from the request
     page_num = request.GET.get('page', 1)
     # Create the paginator object
-    paginator = Paginator(posts, PAGE_SIZE)
+    paginator = Paginator(posts, settings.PAGE_SIZE)
     # Get the specific page's worth of posts
     page = paginator.page(page_num)
     post_form = PostForm()

@@ -131,3 +131,6 @@ USE_THOUSAND_SEPARATOR = True
 
 # Added per:  https://koenwoortman.com/python-django-auto-created-primary-key-used-when-not-defining-primary-key-type/
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+# Pagination:  posts per page
+PAGE_SIZE = 10

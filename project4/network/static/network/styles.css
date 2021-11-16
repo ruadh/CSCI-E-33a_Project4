@@ -30,7 +30,8 @@
 
 /* New Post Form */
 
-#submit-post {
+#submit-post, 
+#save-button  {
     display: block;
     margin-top: 1%;
 }
@@ -43,6 +44,10 @@
     min-width: 100%;
     /* TO DO:  Think about padding units */
     padding:  1%;
+}
+
+.likes-count{
+    margin-left: 0.5rem;
 }
 
 

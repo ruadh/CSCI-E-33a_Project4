@@ -1,5 +1,6 @@
 {% extends "network/layout.html" %}
 {% load static %}
+{% load tz %}
 
 {% block body %}
 
@@ -9,6 +10,7 @@
             <div class="row">
 
                 <div class="col-sm-3">
+                    {# CITATION: Image by Stephanie Edwards from Pixabay #}
                     <img src="{% static 'network/avatar.png' %}" alt="Profile avatar">
                 </div>
                 
@@ -44,42 +46,51 @@
     <div id="posts-list">
 
         <h2>{{title}}</h2>
-        {% for post in page %}
-        <div class="post-row" data-post="{{post.id}}">
-            <div class="post-content">{{post.content}}</div>  
-            <p>By <a href="{% url 'view_profile' post.author.id %}">{{post.author}}</a> on {{post.timestamp}}</p>
-            <p>
-                {% if post.author != request.user and user.is_authenticated %}
-                    {# CITATION:  A friend suggested using emojis as icons. #}
-                    {# NOTE:  This approach depends on the emojis and post-row element's background colors remaining compatible.  That's fine for homework, but we can't count on that in a production situation. #}
-                    {# TO DO:  split buttons by content OR add accessibility labels #}
-                    {% if user in post.liker.all %}
-                        <button class="like-button btn btn-outline-secondary" data-post="{{post.id}}" title="Unlike this post">&#10084;&#65039; <span class="sr-only">Unlike this post</span></button>
+        {% if page %}
+            {% for post in page %}
+            <div class="post-row" data-post="{{post.id}}">
+                <div class="post-content">{{post.content}}</div>  
+                <p>By <a href="{% url 'view_profile' post.author.id %}">{{post.author}}</a> on 
+                    {% if user.is_authenticated %}
+                        {{post.timestamp|timezone:user.timezone}}
                     {% else %}
-                        <button class="like-button btn btn-outline-secondary" data-post="{{post.id}}" title="Like this post">&#129293; <span class="sr-only">Like this post</span></button>
+                        {{post.timestamp}}
                     {% endif %}
-                {% elif post.author == request.user and user.is_authenticated %}
-                    <button class="edit-button btn btn-outline-secondary" data-post="{{post.id}}" title="Edit this post">&#9999;&#65039; <span class="sr-only">Edit this post</span></button>
+                </p>
+                <p>
+                    {% if post.author != request.user and user.is_authenticated %}
+                        {# CITATION:  A friend suggested using emojis as icons. #}
+                        {# This approach depends on the button background color and emoji colors being compatible.  That is safe to assume for this assignment, but maybe not in production #}
+                        {% if user in post.liker.all %}
+                            <button class="like-button btn btn-primary" data-post="{{post.id}}" title="Unlike this post">&#10084;&#65039; <span class="sr-only">Unlike this post</span></button>
+                        {% else %}
+                            <button class="like-button btn btn-primary" data-post="{{post.id}}" title="Like this post">&#129293; <span class="sr-only">Like this post</span></button>
+                        {% endif %}
+                    {% elif post.author == request.user and user.is_authenticated %}
+                        <button class="edit-button btn btn-primary" data-post="{{post.id}}" title="Edit this post">&#9999;&#65039; <span class="sr-only">Edit this post</span></button>
+                    {% endif %}
+                    <span class="likes-count">{{post.likes_count}}</span> Like{{ post.likes_count|pluralize }}
+            </p>    
+            </div>
+            {% endfor %}
+        
+
+            {# CITATION:  based on the Vacara example in Vlad's section #}
+            <nav role="navigation">
+                <ul class="pagination">
+                {% if page.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{page.previous_page_number}}">Previous</a></li>
                 {% endif %}
-                <span class="likes-count">{{post.likes_count}}</span> Like{{ post.likes_count|pluralize }}
-           </p>    
-        </div>
-        {% endfor %}
 
-        {# CITATION:  based on the Vacara example in Vlad's section #}
-        <nav role="navigation">
-            <ul class="pagination">
-            {% if page.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{page.previous_page_number}}">Previous</a></li>
-            {% endif %}
+                <li class="page-item"><a class="page-link" href="?page={{page.number}}">{{page.number}}</a></li>
 
-            <li class="page-item"><a class="page-link" href="?page={{page.number}}">{{page.number}}</a></li>
+                {% if page.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{page.next_page_number}}">Next</a></li>
+                {% endif %}
+                </ul>
+            </nav>
 
-            {% if page.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{page.next_page_number}}">Next</a></li>
-            {% endif %}
-            </ul>
-        </nav>
+        {% endif %}
     </div>
 
 
