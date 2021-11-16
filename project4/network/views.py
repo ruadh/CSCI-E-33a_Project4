@@ -153,6 +153,7 @@ def paginate_posts(request, profile, posts, title):
 
 @login_required
 def post_add(request):
+
     # If we're posting data, attempt to process the form
     if request.method == 'POST':
         form = PostForm(request.POST)
@@ -205,6 +206,13 @@ def update_post(request, id):
     # TEMP FOR TESTING
     time.sleep(1)
 
+    # Validate the content  (also checked on the frontend, but just to be safe)
+    content = json.loads(request.body).get('content').strip()
+    if len(content) == 0:
+        return JsonResponse({'error': 'Empty posts are not allowed.'}, status=400)
+    if len(content) > 256:
+        return JsonResponse({'error': f'Posts may not exceed {settings.CHARACTER_LIMIT} characters.'}, status=400)
+
     try:
         post = Post.objects.get(pk=id)
     except Post.DoesNotExist:
@@ -215,9 +223,10 @@ def update_post(request, id):
     if request.user != post.author:
         return JsonResponse({'error': 'You may not edit this post because you are not its author.'}, status=400)
 
+
     if request.method == 'PUT':
         # Update the post contents
-        post.content = json.loads(request.body).get('content')
+        post.content = content
         post.save()
         return JsonResponse(post.serialize(), status=200)
 

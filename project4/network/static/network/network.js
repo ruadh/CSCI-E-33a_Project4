@@ -20,6 +20,21 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+/** Display an alert message
+ * 
+ * @param {object} element - the HTML element object to contain the message
+ * @param {string} message - the message to be displayed 
+ * @param {string} style - the Bootstrap alert style, ex 'danger' for style 'alert-danger'
+ * 
+ * For style options see:  https://getbootstrap.com/docs/4.0/components/alerts/
+ */
+
+function displayAlert(element, message, style) {
+  element.innerHTML = message;
+  element.style.display = 'block';
+  element.classList.add('alert', `alert-${style}`, 'alert-dismissible', 'fade', 'show');
+}
+
 /**
  * Like or unlike a post
  * @param {number} id - The ID of the post to be retrieved
@@ -51,10 +66,10 @@ document.addEventListener('DOMContentLoaded', function () {
             likeButton.innerHTML = '&#129293; <span class="sr-only">Like this post</span>';
           }
           // Update the likes count
-          document.querySelector(`.post-row[data-post="${id}"] .likes-count`).innerHTML = post.likes_count
+          document.querySelector(`.post-row[data-post="${id}"] .likes-count`).innerHTML = post.likes_count;
         } else {
-          alert(post.error);
-          // TO DO:  Show an on-screen 'please try again' message
+          const alertBox = document.querySelector('#main-alert');
+          displayAlert(alertBox, post.error, 'danger');
         }
 
         // Reenable the like/dislike button
@@ -103,6 +118,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else {
           alert(profile.error);
+          const alertBox = document.querySelector('#main-alert');
+          displayAlert(alertBox, profile.error, 'danger');
           // TO DO:  Show an on-screen 'please try again' message
         }
 
@@ -151,43 +168,54 @@ document.addEventListener('DOMContentLoaded', function () {
 // CITATION:  based on markRead from provided inbox.js in Project 3
 
 function updatePost(id) {
+  const content = document.querySelector(`.post-row[data-post="${id}"] textarea`).value.trim();
+  const CHARACTER_LIMIT = JSON.parse(document.getElementById('CHARACTER_LIMIT').textContent);
 
-  // Disable the save button
-  const saveButton = document.querySelector('#save-button');
-  saveButton.disabled = true;
+  if (content.length == 0){
+    alert('Empty posts are not allowed.');
 
-  // Update the post's contents via the API
+  } else if (content.length > CHARACTER_LIMIT) {
+    alert(`Posts may not exceed ${CHARACTER_LIMIT} characters.`);
 
-  fetch(`/posts/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      content: document.querySelector(`.post-row[data-post="${id}"] textarea`).value
+ } else {
+    
+    // Disable the save button
+    const saveButton = document.querySelector('#save-button');
+    saveButton.disabled = true;
+
+    // Update the post's contents via the API
+
+    fetch(`/posts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        content: content
+      })
     })
-  })
-  .then(response => response.json())
-  .then(post => {
+    .then(response => response.json())
+    .then(post => {
 
 
-    // If successful, update the page
-    if (post.error == undefined){
+      // If successful, update the page
+      if (post.error == undefined){
 
-      // Replace the "form" with the updated post contents
-      const contents = document.querySelector(`.post-row[data-post="${id}"] .post-content`);
-      contents.innerHTML = post.content
+        // Replace the "form" with the updated post contents
+        const contents = document.querySelector(`.post-row[data-post="${id}"] .post-content`);
+        contents.innerHTML = post.content
 
-      // Reenable the edit button
-      const editButton = document.querySelector(`.post-row[data-post="${id}"] .edit-button`);
-      editButton.disabled = false;
+        // Reenable the edit button
+        const editButton = document.querySelector(`.post-row[data-post="${id}"] .edit-button`);
+        editButton.disabled = false;
 
-    } else {
-      alert(post.error);
-      // TO DO:  Show an on-screen 'please try again' message
-    }
+      } else {
+        alert(post.error);
+        // TO DO:  Show an on-screen 'please try again' message
+      }
 
-    // Reenable the like/dislike button to try again
-    saveButton.disabled = false;
+      // Reenable the like/dislike button to try again
+      saveButton.disabled = false;
 
-      
-  });
+    });
+  
+}
 
 }

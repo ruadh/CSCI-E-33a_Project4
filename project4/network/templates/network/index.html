@@ -4,6 +4,11 @@
 
 {% block body %}
 
+    {# TO DO:  Confirm that we're using this #}
+    {# Placeholder for error messages #}
+    <div id="main-alert">
+    </div>
+
     {# If we're on the profile page, show the profile.  Otherwise, show the post form to authenticated users #}
     {% if profile %}
         <div class="profile container bg-info" id="user-profile">
@@ -16,6 +21,7 @@
                 
                 <div class="col-sm-9">
                     <h2>{{profile.username}}</h2>
+                    <button id="follow-button" class="btn btn-primary" data-user="{{profile.id}}">CHEATING FOLLOW</button>
                     <p>Followers:  <span id="followers-count">{{profile.followers_count}}</span></p>
                     <p>Following:  <span id="following-count">{{profile.following_count}}</span></p>
                     {% if profile != user and user.is_authenticated %}

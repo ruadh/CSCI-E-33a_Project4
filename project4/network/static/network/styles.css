@@ -40,6 +40,11 @@
     display: none;
 }
 
+/* TEMP FOR TESTING:  Message container is hidden until enabled by JS */
+#alert {
+    display: none;
+}
+
 #new-post textarea{
     min-width: 100%;
     /* TO DO:  Think about padding units */

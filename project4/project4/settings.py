@@ -63,6 +63,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # CITATION: https://chriskief.com/2013/09/19/access-django-constants-from-settings-py-in-a-template/
+                'network.context_processors.global_settings'
             ],
         },
     },
@@ -134,3 +136,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Pagination:  posts per page
 PAGE_SIZE = 10
+
+# Posts:  Maximum character length
+CHARACTER_LIMIT = 256
+
+# CITATION:  Passing a settings value to JS from: 
+# https://chriskief.com/2013/09/19/access-django-constants-from-settings-py-in-a-template/
