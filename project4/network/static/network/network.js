@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-/** Display an alert message
+/** Display an alert message with the specified content and Bootstrap style
  * 
  * @param {object} element - the HTML element object to contain the message
  * @param {string} message - the message to be displayed 
@@ -29,11 +29,26 @@ document.addEventListener('DOMContentLoaded', function () {
  * For style options see:  https://getbootstrap.com/docs/4.0/components/alerts/
  */
 
+// Note:  I'm using display styling and CSS animations to dismiss the alert.  
+//        A future enhancement could be to use Boostrap's JQuery, but that was too much work for a feature not in the spec.  
+
 function displayAlert(element, message, style) {
   element.innerHTML = message;
   element.style.display = 'block';
-  element.classList.add('alert', `alert-${style}`, 'alert-dismissible', 'fade', 'show');
+  element.classList.add('alert', `alert-${style}`);
+
+  // Pause for the fade out animation, then clear 
+  setTimeout( () => {
+    // Clear the contents before hiding, in case another function tries to append to it
+    element.innerHTML = null;
+    element.style.display = 'none';
+  },
+    // DEPENDENCY:  This must be updated if animation-timing or animation-duration for .alert in styles.css are modified
+    12000
+  )
+
 }
+
 
 /**
  * Like or unlike a post
@@ -68,8 +83,8 @@ function displayAlert(element, message, style) {
           // Update the likes count
           document.querySelector(`.post-row[data-post="${id}"] .likes-count`).innerHTML = post.likes_count;
         } else {
-          const alertBox = document.querySelector('#main-alert');
-          displayAlert(alertBox, post.error, 'danger');
+          // Display an alert above the post
+          displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), post.error, 'danger');
         }
 
         // Reenable the like/dislike button
@@ -117,10 +132,8 @@ function displayAlert(element, message, style) {
           document.querySelector('#following-count').innerHTML = profile.following_count;
 
         } else {
-          alert(profile.error);
-          const alertBox = document.querySelector('#main-alert');
-          displayAlert(alertBox, profile.error, 'danger');
-          // TO DO:  Show an on-screen 'please try again' message
+          // Show a message in the main alert area
+          displayAlert(document.querySelector('#main-alert'), profile.error, 'danger');
         }
 
         // Reenable the follow/unfollow button
@@ -172,12 +185,14 @@ function updatePost(id) {
   const CHARACTER_LIMIT = JSON.parse(document.getElementById('CHARACTER_LIMIT').textContent);
 
   if (content.length == 0){
-    alert('Empty posts are not allowed.');
+    // Display an alert above the post
+    displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), 'Empty posts are not allowed', 'danger');
 
   } else if (content.length > CHARACTER_LIMIT) {
-    alert(`Posts may not exceed ${CHARACTER_LIMIT} characters.`);
-
- } else {
+      // Display an alert above the post
+      displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), `Posts may not exceed ${CHARACTER_LIMIT} characters.`, 'danger');
+      
+  } else {
     
     // Disable the save button
     const saveButton = document.querySelector('#save-button');
@@ -207,8 +222,9 @@ function updatePost(id) {
         editButton.disabled = false;
 
       } else {
-        alert(post.error);
-        // TO DO:  Show an on-screen 'please try again' message
+        // Display an alert above the post
+        displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), post.error, 'danger');
+        
       }
 
       // Reenable the like/dislike button to try again

@@ -206,6 +206,9 @@ def update_post(request, id):
     # TEMP FOR TESTING
     time.sleep(1)
 
+    # TEMP FOR TESTING:  RETURN AN ERROR
+    return JsonResponse({'error': 'Python error.'}, status=400)
+
     # Validate the content  (also checked on the frontend, but just to be safe)
     content = json.loads(request.body).get('content').strip()
     if len(content) == 0:

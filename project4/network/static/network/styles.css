@@ -40,9 +40,20 @@
     display: none;
 }
 
-/* TEMP FOR TESTING:  Message container is hidden until enabled by JS */
-#alert {
+/* Hide message containers until enabled by JS */
+/* .alert {
     display: none;
+} */
+
+
+.alert {
+    /* Hide alerts by default */
+    display: none;
+
+    /* Automatically fade them out once they are displayed */
+    animation-name: fade_out;
+    animation-delay: 10s;
+    animation-duration: 2s;
 }
 
 #new-post textarea{
@@ -53,6 +64,15 @@
 
 .likes-count{
     margin-left: 0.5rem;
+}
+
+@keyframes fade_out {
+    from {
+        opacity: 100%;
+    }
+    to {
+        opacity: 0%;
+    }
 }
 
 
