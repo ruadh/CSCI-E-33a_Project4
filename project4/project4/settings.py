@@ -129,6 +129,7 @@ STATIC_URL = '/static/'
 # System's default display timezone - can be overriden by user preference
 DEFAULT_TIMEZONE = 'America/New_York'
 
+# Not relevant to the demo, but once the network grows in production, a user could exceed 1k followers
 USE_THOUSAND_SEPARATOR = True
 
 # Added per:  https://koenwoortman.com/python-django-auto-created-primary-key-used-when-not-defining-primary-key-type/
@@ -137,8 +138,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # Pagination:  posts per page
 PAGE_SIZE = 10
 
-# Posts:  Maximum character length
+# Posts:  Maximum character length  (my arbitrary choice)
 CHARACTER_LIMIT = 256
-
-# CITATION:  Passing a settings value to JS from: 
-# https://chriskief.com/2013/09/19/access-django-constants-from-settings-py-in-a-template/

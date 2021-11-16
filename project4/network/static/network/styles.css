@@ -1,13 +1,19 @@
-.post-row, #new-post {
-    /* padding: 10px; */
+.post-row, 
+#new-post {
     margin: 10px;
 }
 
 .post-row {
     background-color: #E6E6E6;
-    padding: 10px;
     border-radius: 3px;
-    /* margin: 0 auto 0 auto; */
+}
+
+/* Keep these values consistent so the alignment stays consistent */
+.post-row,
+.pagination,
+footer,
+#posts-list h2 {
+    padding: 10px;
 }
 
 .post-content {
@@ -15,11 +21,9 @@
     font-size: x-large;
 }
 
-.profile {
-    /* background-color: aliceblue; */
+#user-profile {
     padding: 20px;
     margin: 40px 10px 40px 10px;
-    /* --bs-bg-opacity: .1; */
     border-radius: 3px;
 }
 

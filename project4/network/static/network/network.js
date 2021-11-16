@@ -13,9 +13,12 @@ document.addEventListener('DOMContentLoaded', function () {
     button.addEventListener('click', () => editPost(button.dataset.post));
   });
 
-  // Add a listener to the Follow/Unfollow button,
-  const followButton = document.querySelector('#follow-button');
-  followButton.addEventListener('click', () => toggleFollow(followButton.dataset.user));
+  // Add a listener to the Follow/Unfollow button
+  // Note: There should only ever be one follow button on the page, but if we just used querySelector, we'd also have to check
+  //       whether the element was present on the page.  querySelectorAll().forEach handles that seamlessly.
+  document.querySelectorAll('#follow-button').forEach( button => {
+    button.addEventListener('click', () => toggleFollow(button.dataset.user));
+  });
 
 });
 
@@ -172,6 +175,30 @@ function displayAlert(element, message, style) {
 
 }
 
+/**
+ * Get the value of a particular cookie
+ * @param {string} name - The name of the cookie whose value should be returned
+ */
+
+// CITATION:  Copied directly from the Django docs: https://docs.djangoproject.com/en/3.2/ref/csrf/
+
+// function getCookie(name) {
+//   let cookieValue = null;
+//   if (document.cookie && document.cookie !== '') {
+//       const cookies = document.cookie.split(';');
+//       for (let i = 0; i < cookies.length; i++) {
+//           const cookie = cookies[i].trim();
+//           // Does this cookie string begin with the name we want?
+//           if (cookie.substring(0, name.length + 1) === (name + '=')) {
+//               cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+//               break;
+//           }
+//       }
+//   }
+//   return cookieValue;
+// }
+
+
 
 /**
  * Update an edited post
@@ -198,13 +225,19 @@ function updatePost(id) {
     const saveButton = document.querySelector('#save-button');
     saveButton.disabled = true;
 
-    // Update the post's contents via the API
+    // Gather the CSRF token from the Django template
+    // CITATION:  Copied directly from Vlad's section slides
+    const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
+    // Update the post's contents via the API
     fetch(`/posts/${id}`, {
       method: 'PUT',
       body: JSON.stringify({
         content: content
-      })
+      }),
+      headers: {
+        'X-CSRFToken': token
+      }
     })
     .then(response => response.json())
     .then(post => {

@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.views.decorators.csrf import csrf_exempt
+# from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 
 from .models import Post, User
@@ -128,7 +128,7 @@ def following_posts(request):
     posts = Post.objects.filter(
         author__in=request.user.following.all()).order_by('-timestamp').all()
     if posts.count() > 0:
-        title = 'Recent Posts by Users I\'m Following'
+        title = 'Recent Posts - By Users I\'m Following'
     else:
         title = 'You are not following any users'
     return paginate_posts(request, '', posts, title )
@@ -151,6 +151,8 @@ def paginate_posts(request, profile, posts, title):
 # NOTE: I opted to handle this with Django instead of JS, since most users will expect to see a refreshed list
 #       of current posts with their new post on top after submitting.  (Like and follow would be expected to happen in situ.)
 
+# TO DO:  Revamp this to submit via JS
+
 @login_required
 def post_add(request):
 
@@ -163,6 +165,7 @@ def post_add(request):
             post.save()
             return HttpResponseRedirect(reverse('index'))
         else:
+            # TO DO:  Load the posts and return to the original context
             messages.error(
                 request, 'Invalid form entry.  Please fix the issues below and resubmit.')
             return render(request, 'network/index.html', {
@@ -198,16 +201,11 @@ def view_profile(request, id):
 
 # Edit a post
 
-# TO DO:  Remove CSRF exemption
-@csrf_exempt
 @login_required
 def update_post(request, id):
 
     # TEMP FOR TESTING
     time.sleep(1)
-
-    # TEMP FOR TESTING:  RETURN AN ERROR
-    return JsonResponse({'error': 'Python error.'}, status=400)
 
     # Validate the content  (also checked on the frontend, but just to be safe)
     content = json.loads(request.body).get('content').strip()
@@ -228,7 +226,7 @@ def update_post(request, id):
 
 
     if request.method == 'PUT':
-        # Update the post contents
+        # Update the post contents and save it
         post.content = content
         post.save()
         return JsonResponse(post.serialize(), status=200)
@@ -240,7 +238,6 @@ def update_post(request, id):
 
 
 # Toggle whether the current user likes or does not like a post
-# TO DO:  Add comments about toggle vs. specify action
 
 @login_required
 def toggle_like(request, id):
@@ -269,8 +266,7 @@ def toggle_like(request, id):
         return JsonResponse(post.serialize(), status=200)
 
 
-# Toggle whether the current user likes or does not like a post
-# TO DO:  Add comments about toggle vs. specify action
+# Toggle whether the current user does or doesn't follow a user
 
 @login_required
 def toggle_follow(request, id):

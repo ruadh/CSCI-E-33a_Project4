@@ -10,7 +10,7 @@
 
     {# If we're on the profile page, show the profile.  Otherwise, show the post form to authenticated users #}
     {% if profile %}
-        <div class="profile container bg-info" id="user-profile">
+        <div class="container bg-info" id="user-profile">
             <div class="row">
 
                 <div class="col-sm-3">
@@ -20,11 +20,10 @@
                 
                 <div class="col-sm-9">
                     <h2>{{profile.username}}</h2>
-                    <button id="follow-button" class="btn btn-primary" data-user="{{profile.id}}">CHEATING FOLLOW</button>
                     <p>Followers:  <span id="followers-count">{{profile.followers_count}}</span></p>
                     <p>Following:  <span id="following-count">{{profile.following_count}}</span></p>
                     {% if profile != user and user.is_authenticated %}
-                    <button id="follow-button" class="btn btn-primary" data-user="{{profile.id}}">
+                    <button id="follow-button" class="btn btn-light" data-user="{{profile.id}}">
                         {% if user in profile.followers.all %}
                             Unfollow
                         {% else %}
@@ -66,7 +65,6 @@
                     {% endif %}
                 </p>
                 <p>
-                    <button class="like-button btn btn-primary" data-post="{{post.id}}" title="Unlike this post">CHEATING LIKE</button>
                     {% if post.author != request.user and user.is_authenticated %}
                         {# CITATION:  A friend suggested using emojis as icons. #}
                         {# This approach depends on the button background color and emoji colors being compatible.  That is safe to assume for this assignment, but maybe not in production #}

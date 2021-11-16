@@ -38,7 +38,6 @@ class User(AbstractUser):
 
 class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts', null=True, blank=True)
-    # content = models.CharField(max_length=256, null=False, blank=False)
     content = models.CharField(max_length=settings.CHARACTER_LIMIT, null=False, blank=False)
     timestamp = models.DateTimeField(auto_now_add=True)
     liker = models.ManyToManyField(User, blank=True, related_name='likes')
