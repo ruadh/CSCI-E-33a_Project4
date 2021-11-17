@@ -4,66 +4,66 @@
 
 {% block body %}
 
-    {# Container for JavaScript fading error messages #}
-    <div id="main-alert-fading" class="alert alert-fade" role="alert">
+{# Container for fading JavaScript-created error messages #}
+<div id="main-alert-fading" class="alert alert-fade" role="alert">
+</div>
+
+{# Container for persistent Django-created error messages #}
+{% if message %}
+    <div id="main-alert-persistent" class="alert alert-danger">
+        {{message}}
     </div>
+{% endif %}
 
-    {# Container for error messages that should persist instead of fading #}
-    {% if message %}
-        <div id="main-alert-persistent" class="alert alert-danger">
-            {{message}}
-        </div>
-    {% endif %}
+{# If we're on the profile page, show the profile.  Otherwise, show the post form to authenticated users #}
+{% if profile %}
+    <div class="container bg-info" id="user-profile">
+        <div class="row">
 
-    {# If we're on the profile page, show the profile.  Otherwise, show the post form to authenticated users #}
-    {% if profile %}
-        <div class="container bg-info" id="user-profile">
-            <div class="row">
+            <div class="col-sm-3">
+                {# CITATION: Image by Stephanie Edwards from Pixabay #}
+                <img src="{% static 'network/avatar.png' %}" alt="Profile avatar">
+            </div>
 
-                <div class="col-sm-3">
-                    {# CITATION: Image by Stephanie Edwards from Pixabay #}
-                    <img src="{% static 'network/avatar.png' %}" alt="Profile avatar">
-                </div>
-                
-                <div class="col-sm-9">
-                    <h2>{{profile.username}}</h2>
-                    <p>Followers:  <span id="followers-count">{{profile.followers_count}}</span></p>
-                    <p>Following:  <span id="following-count">{{profile.following_count}}</span></p>
-                    {% if profile != user and user.is_authenticated %}
+            <div class="col-sm-9">
+                <h2>{{profile.username}}</h2>
+                <p>Followers: <span id="followers-count">{{profile.followers_count}}</span></p>
+                <p>Following: <span id="following-count">{{profile.following_count}}</span></p>
+                {% if profile != user and user.is_authenticated %}
                     <button id="follow-button" class="btn btn-light" data-user="{{profile.id}}">
                         {% if user in profile.followers.all %}
-                            Unfollow
+                        Unfollow
                         {% else %}
-                            Follow
+                        Follow
                         {% endif %}
                     </button>
-                    {% endif %}
-                </div> 
-
+                {% endif %}
             </div>
-        </div>
-    {% elif show_form and user.is_authenticated %}
-        <div id="new-post">
-            <!-- NOTE:  The text area doesn't really need to be wrapped in a form, but it makes adding the CSRF token easier -->
-            <form id="new-post-form">
-                {% csrf_token %}
-                <textarea placeholder="What's on your mind?"></textarea>
-                <button id="submit-post" class="btn btn-primary">Submit</button>
-            </form>
-        </div>
-    {% endif %}
 
-    <div id="posts-list">
+        </div>
+    </div>
+{% elif show_form and user.is_authenticated %}
+    <div id="new-post">
+        <!-- NOTE:  The text area doesn't really need to be wrapped in a form, but it makes adding the CSRF token easier -->
+        <form id="new-post-form">
+            {% csrf_token %}
+            <textarea placeholder="What's on your mind?"></textarea>
+            <button id="submit-post" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+{% endif %}
 
-        <h2>{{title}}</h2>
-        {% if page %}
-            {% for post in page %}
+<div id="posts-list">
+
+    <h2>{{title}}</h2>
+    {% if page %}
+        {% for post in page %}
             <div class="post-row" data-post="{{post.id}}">
                 {# Container for post-level error messages #}
                 <div class="alert alert-fade" role="alert">
                 </div>
-                <div class="post-content">{{post.content}}</div>  
-                <p>By <a href="{% url 'view_profile' post.author.id %}">{{post.author}}</a> on 
+                <div class="post-content">{{post.content}}</div>
+                <p>By <a href="{% url 'view_profile' post.author.id %}">{{post.author}}</a> on
                     {% if user.is_authenticated %}
                         {{post.timestamp|timezone:user.timezone}}
                     {% else %}
@@ -75,22 +75,25 @@
                         {# CITATION:  A friend suggested using emojis as icons. #}
                         {# This approach depends on the button background color and emoji colors being compatible.  That is safe to assume for this assignment, but maybe not in production #}
                         {% if user in post.liker.all %}
-                            <button class="like-button btn btn-primary" data-post="{{post.id}}" title="Unlike this post">&#10084;&#65039; <span class="sr-only">Unlike this post</span></button>
+                            <button class="like-button btn btn-primary" data-post="{{post.id}}"
+                                title="Unlike this post">&#10084;&#65039; <span class="sr-only">Unlike this post</span></button>
                         {% else %}
-                            <button class="like-button btn btn-primary" data-post="{{post.id}}" title="Like this post">&#129293; <span class="sr-only">Like this post</span></button>
+                            <button class="like-button btn btn-primary" data-post="{{post.id}}" title="Like this post">&#129293; <span
+                                    class="sr-only">Like this post</span></button>
                         {% endif %}
-                    {% elif post.author == request.user and user.is_authenticated %}
-                        <button class="edit-button btn btn-primary" data-post="{{post.id}}" title="Edit this post">&#9999;&#65039; <span class="sr-only">Edit this post</span></button>
+                        {% elif post.author == request.user and user.is_authenticated %}
+                            <button class="edit-button btn btn-primary" data-post="{{post.id}}" title="Edit this post">&#9999;&#65039;
+                                <span class="sr-only">Edit this post</span></button>
                     {% endif %}
                     <span class="likes-count">{{post.likes_count}}</span> Like{{ post.likes_count|pluralize }}
-            </p>    
+                </p>
             </div>
-            {% endfor %}
-        
+        {% endfor %}
 
-            {# CITATION:  based on the Vacara example in Vlad's section #}
-            <nav role="navigation">
-                <ul class="pagination">
+
+        {# CITATION:  based on the Vacara example in Vlad's section #}
+        <nav role="navigation">
+            <ul class="pagination">
                 {% if page.has_previous %}
                     <li class="page-item"><a class="page-link" href="?page={{page.previous_page_number}}">Previous</a></li>
                 {% endif %}
@@ -100,12 +103,11 @@
                 {% if page.has_next %}
                     <li class="page-item"><a class="page-link" href="?page={{page.next_page_number}}">Next</a></li>
                 {% endif %}
-                </ul>
-            </nav>
+            </ul>
+        </nav>
 
-        {% endif %}
-    </div>
+    {% endif %}
+</div>
 
 
 {% endblock %}
-

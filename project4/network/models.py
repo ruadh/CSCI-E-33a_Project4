@@ -44,8 +44,8 @@ class Post(models.Model):
 
     def __str__(self):
         return f'{self.author} @ {self.timestamp.strftime("%x %X")}'
-   
-    # @property
+
+    @property
     def likes_count(self):
         return self.liker.count()
 
@@ -57,6 +57,5 @@ class Post(models.Model):
             'content': self.content,
             'timestamp': self.timestamp.strftime('%x %X'),
             'likers': [user.id for user in self.liker.all()],
-            # TO DO:  Why does this have to be a method, while followers count doesn't?
-            'likes_count': self.likes_count()
+            'likes_count': self.likes_count
         }

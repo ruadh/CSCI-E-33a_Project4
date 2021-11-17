@@ -189,12 +189,12 @@ function updatePost(id) {
  * @param {number} id - The ID of the post
  */
 
-// DESIGN NOTE: Toggling the existing value means that we might misinterpret the user's intention in some cases. 
-//              Ex: if the user has our app open two browser windows, a like made in one window would still seem
-//              not liked in the other window until refreshed/updated.  So the user might try to like it a second
-//              time, and end up undoing their first like.
-//              Another way to handle that would be to pass the user's intended action (like/unlike) to the API,
-//              but since Vlad suggested the toggle method in section, I assume it's acceptable, and am not prioritizing that.
+// DESIGN NOTES: Toggling the existing value means that we might misinterpret the user's intention in some cases. 
+//               Ex: if the user has our app open two browser windows, a like made in one window would still seem
+//               not liked in the other window until refreshed/updated.  So the user might try to like it a second
+//               time, and end up undoing their first like.
+//               Another way to handle that would be to pass the user's intended action (like/unlike) to the API,
+//               but since Vlad suggested the toggle method in section, I assume it's acceptable, and am not prioritizing that.
 
 function toggleLike(id) {
 

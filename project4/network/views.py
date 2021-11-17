@@ -2,7 +2,7 @@
 #               https://docs.djangoproject.com/en/dev/internals/contributing/writing-code/coding-style/
 
 import json
-# TEMP FOR TESTING:  
+# TEMP FOR TESTING:
 import time
 
 import pytz
@@ -19,7 +19,6 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .models import Post, User
-
 
 
 # CLASSES
@@ -139,7 +138,14 @@ def paginate_posts(request, profile, posts, title, message=None, show_form=False
     # Get the specific page's worth of posts
     page = paginator.page(page_num)
     post_form = PostForm()
-    return render(request, 'network/index.html', {'page': page, 'profile': profile, 'title': title, 'post_form': post_form, 'message': message, 'show_form': show_form})
+    return render(request, 'network/index.html', {
+        'page': page,
+        'profile': profile,
+        'title': title,
+        'post_form': post_form,
+        'message': message,
+        'show_form': show_form
+    })
 
 
 @login_required
@@ -206,7 +212,7 @@ def post(request, id=None):
             return JsonResponse({'error': 'Post not found.'}, status=404)
 
         # Don't allow users to edit others' posts
-        # NOTE:  I'm not 100% sure error 400 is correct, but I chose it based on: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+        # NOTE:  I'm not sure error 400 is correct, but I chose it based on: https://mzl.la/3kNTYCN
         if request.user != post.author:
             return JsonResponse({'error': 'You may not edit this post because you are not its author.'}, status=400)
 
@@ -222,7 +228,7 @@ def post(request, id=None):
 @login_required
 def toggle_like(request, id):
     """Toggle whether the current user likes or doesn't like a post"""
-    # NOTE: See design notes in toggleLike in network.js for thoughts on toggling the existing value vs. passing the user's intended action
+    # NOTE: See design notes in toggleLike in network.js for thoughts on toggling the value vs. passing the action
 
     # TEMP FOR TESTING
     time.sleep(1)
@@ -233,7 +239,6 @@ def toggle_like(request, id):
         return JsonResponse({'error': 'Post not found.'}, status=404)
 
     # Don't allow a user to like their own post
-    # NOTE:  I'm not 100% sure error 400 is correct, but I chose it based on: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
     if request.user == post.author:
         return JsonResponse({'error': 'You may not like your own post.'}, status=400)
 
@@ -251,7 +256,7 @@ def toggle_like(request, id):
 @login_required
 def toggle_follow(request, id):
     """Toggle whether the current user follows or doesn't follow another user"""
-    # NOTE:  See design notes in toggleLike in network.js for thoughts on toggling the existing value vs. passing the user's intended action
+    # NOTE:  See design notes in toggleLike in network.js for thoughts on toggling the value vs. passing the action
 
     # TEMP FOR TESTING
     time.sleep(1)
@@ -262,7 +267,6 @@ def toggle_follow(request, id):
         return JsonResponse({'error': 'User not found.'}, status=404)
 
     # Don't allow a user to follow themselves
-    # NOTE:  I'm not 100% sure error 400 is correct, but I chose it based on: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
     if request.user == profile:
         return JsonResponse({'error': 'You may not follow yourself.'}, status=400)
 

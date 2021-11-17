@@ -1,36 +1,39 @@
 {% load static %}
 {% load tz %}
 
-{# CITATION: Make user ID and character available to JS per https://stackoverflow.com/a/62592463 #}
+{# CITATION: Make user ID available to JS per https://stackoverflow.com/a/62592463 #}
 {{ request.user.id|json_script:"user_id" }}
 
-{# CITATION: Make template values available to JS per https://bit.ly/3Ch1SdL #}
+{# CITATION: Make values from settings.py available to JS per https://bit.ly/3Ch1SdL #}
 {{ CHARACTER_LIMIT|json_script:"CHARACTER_LIMIT" }}
 
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>{% block title %}Social Network{% endblock %}</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-        <link href="{% static 'network/styles.css' %}" rel="stylesheet">
-        <script src="{% static 'network/network.js' %}"></script>
-        <meta charset="UTF-8">
-    </head>
-    <body>
 
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="#">Network</a>
-          
-            <div>
-              <ul class="navbar-nav mr-auto">
+<head>
+    <title>{% block title %}Social Network{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="{% static 'network/styles.css' %}" rel="stylesheet">
+    <script src="{% static 'network/network.js' %}"></script>
+    <meta charset="UTF-8">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Network</a>
+
+        <div>
+            <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="#"><strong>{{ user.username }}</strong></a>
                     </li>
                 {% endif %}
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'index' %}">All Posts</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'index' %}">All Posts</a>
+                    </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'following' %}">Following</a>
@@ -46,20 +49,21 @@
                         <a class="nav-link" href="{% url 'register' %}">Register</a>
                     </li>
                 {% endif %}
-              </ul>
-            </div>
-          </nav>
+            </ul>
+        </div>
+    </nav>
 
-        <!-- Content brought in from templates -->
-            {% block body %}
-            {% endblock %}
+    <!-- Content brought in from templates -->
+    {% block body %}
+    {% endblock %}
 
-    </body>
-    <footer>
-        {% if user.is_authenticated %}
-            <p>Time zone: {{user.timezone}}</p>
-        {% else %}
-            <p>Time zone: UTC</p> 
-        {% endif %}
-    </footer>
+</body>
+<footer>
+    {% if user.is_authenticated %}
+        <p>Time zone: {{user.timezone}}</p>
+    {% else %}
+        <p>Time zone: UTC</p>
+    {% endif %}
+</footer>
+
 </html>
