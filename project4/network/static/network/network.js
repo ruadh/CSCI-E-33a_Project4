@@ -40,19 +40,11 @@ function newPost() {
   // Prevent normal form submission, which would refresh the page
   event.preventDefault();
 
+  // Gather and validate the content
   const content = document.querySelector('#new-post textarea').value.trim();
-  const CHARACTER_LIMIT = JSON.parse(document.getElementById('CHARACTER_LIMIT').textContent);
+  const valid = validate(content, document.querySelector('#main-alert-fading'));
 
-  if (content.length == 0) {
-    // Show a message in the main alert area
-    displayAlert(document.querySelector('#main-alert-fading'), 'Empty posts are not allowed', 'danger');
-
-  } else if (content.length > CHARACTER_LIMIT) {
-    // Show a message in the main alert area
-    displayAlert(document.querySelector('#main-alert-fading'), `Posts may not exceed ${CHARACTER_LIMIT} characters.`, 'danger');
-
-  } else {
-
+  if (valid == true) {
     // Disable the submit button
     const saveButton = document.querySelector('#submit-post');
     saveButton.disabled = true;
@@ -63,14 +55,14 @@ function newPost() {
 
     // Update the post's contents via the API
     fetch(`/posts`, {
-      method: 'POST',
-      body: JSON.stringify({
-        content: content
-      }),
-      headers: {
-        'X-CSRFToken': token
-      }
-    })
+        method: 'POST',
+        body: JSON.stringify({
+          content: content
+        }),
+        headers: {
+          'X-CSRFToken': token
+        }
+      })
       .then(response => response.json())
       .then(post => {
 
@@ -88,18 +80,17 @@ function newPost() {
         saveButton.disabled = false;
 
       });
-
   }
 
 }
 
 
 /**
- * Provide the user with a JS "form" to edit a post
+ * Provide the user with a JS pseudo-form to edit a post
  * @param {number} id - The ID of the post to be edited
  */
 
- function loadPost(id) {
+function loadPost(id) {
 
   // Disable the button the user just clicked on, so they can't click repeatedly while waiting
   const editButton = document.querySelector(`.post-row[data-post="${id}"] .edit-button`);
@@ -130,22 +121,21 @@ function newPost() {
  * @param {number} id - The ID of the post to be updated
  */
 
-// CITATION:  based on markRead inbox.js provided in Project 3
+// CITATION:      Based on markRead inbox.js provided in Project 3
+// DESIGN NOTE:   I decided not to merge newPost and updatePost into a single function.
+//                While the fetch is pretty similar, how the function updates the
+//                DOM afterward is pretty different for the top-of-page and in-row "forms".
 
 function updatePost(id) {
+
+  // const content = document.querySelector(`.post-row[data-post="${id}"] textarea`).value.trim();
+  // const CHARACTER_LIMIT = JSON.parse(document.getElementById('CHARACTER_LIMIT').textContent);
+
+  // Gather and validate the content
   const content = document.querySelector(`.post-row[data-post="${id}"] textarea`).value.trim();
-  const CHARACTER_LIMIT = JSON.parse(document.getElementById('CHARACTER_LIMIT').textContent);
+  const valid = validate(content, document.querySelector(`.post-row[data-post="${id}"] .alert`));
 
-  if (content.length == 0) {
-    // Display an alert above the post
-    displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), 'Empty posts are not allowed', 'danger');
-
-  } else if (content.length > CHARACTER_LIMIT) {
-    // Display an alert above the post
-    displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), `Posts may not exceed ${CHARACTER_LIMIT} characters.`, 'danger');
-
-  } else {
-
+  if (valid == true) {
     // Disable the save button
     const saveButton = document.querySelector('#save-button');
     saveButton.disabled = true;
@@ -156,14 +146,14 @@ function updatePost(id) {
 
     // Update the post's contents via the API
     fetch(`/posts/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        content: content
-      }),
-      headers: {
-        'X-CSRFToken': token
-      }
-    })
+        method: 'PUT',
+        body: JSON.stringify({
+          content: content
+        }),
+        headers: {
+          'X-CSRFToken': token
+        }
+      })
       .then(response => response.json())
       .then(post => {
 
@@ -171,9 +161,9 @@ function updatePost(id) {
         // If successful, update the page
         if (post.error == undefined) {
 
-          // Replace the "form" with the updated post contents
+          // Replace the pseudo-form with the updated post contents
           const contents = document.querySelector(`.post-row[data-post="${id}"] .post-content`);
-          contents.innerHTML = post.content
+          contents.innerHTML = post.content;
 
           // Reenable the edit button
           const editButton = document.querySelector(`.post-row[data-post="${id}"] .edit-button`);
@@ -189,7 +179,6 @@ function updatePost(id) {
         saveButton.disabled = false;
 
       });
-
   }
 
 }
@@ -291,6 +280,9 @@ function toggleFollow(id) {
 }
 
 
+// HELPER FUNCTIONS
+
+
 /** Display an alert message in the specified element with the specified content and Bootstrap style
  * 
  * @param {object} element - the HTML element object to contain the message
@@ -310,11 +302,41 @@ function displayAlert(element, message, style) {
 
   // Pause for the fade out animation, then clear the contents (in case another function displays it before modifying) and remove the element
   setTimeout(() => {
-    element.innerHTML = null;
-    element.style.display = 'none';
-  },
+      element.innerHTML = null;
+      element.style.display = 'none';
+    },
     // DEPENDENCY:  This must be updated if animation-timing or animation-duration for .alert in styles.css are modified
     7000
-  )
+  );
+
+}
+
+/** Check the contents of a post to be created or edited and show an error
+ * 
+ * @param {string} content - the post content to be validated 
+ * @param {object} element - the HTML element object to contain the any error messages
+ * 
+ * Returns True if validation passes, or False if validation fails
+ * 
+ */
+
+// DESIGN NOTE:   I'm using this instead of Django's form validation to avoid page refreshes,
+//                and to keep the error handling consistent across posts, likes, and follows.
+
+function validate(content, element) {
+  const CHARACTER_LIMIT = JSON.parse(document.getElementById('CHARACTER_LIMIT').textContent);
+  if (content.length == 0) {
+    // Show a message in the main alert area
+    displayAlert(element, 'Empty posts are not allowed', 'danger');
+    return false;
+
+  } else if (content.length > CHARACTER_LIMIT) {
+    // Show a message in the main alert area
+    displayAlert(element, `Posts may not exceed ${CHARACTER_LIMIT} characters.`, 'danger');
+    return false;
+
+  } else {
+    return true;
+  }
 
 }

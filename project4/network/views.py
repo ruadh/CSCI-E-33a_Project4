@@ -1,22 +1,25 @@
-import json
-import pytz
+# CITATION:     Import sorting by iSort, as recommended by the Django contributors documentation:
+#               https://docs.djangoproject.com/en/dev/internals/contributing/writing-code/coding-style/
 
+import json
+# TEMP FOR TESTING:  
+import time
+
+import pytz
 from django import forms
-from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import render
-from django.urls import reverse
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import IntegrityError
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import render
+from django.urls import reverse
 from django.utils import timezone
 
 from .models import Post, User
 
-# TEMP FOR TESTING:  supports adding pauses to API calls
-import time
 
 
 # CLASSES
