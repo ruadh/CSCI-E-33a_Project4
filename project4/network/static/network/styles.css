@@ -1,92 +1,86 @@
-.post-row, 
+/* NOTE:    This app's look & feel is also affected by Boostrap CSS and UTF-8 emojis.  
+            Any changes made here should be tested to make sure they're compatible. 
+            For example, not all button colors will work with emojis used as button icons.
+*/
+
+
+/* MAIN SECTIONS ALIGNMENT */
+
+footer,
+.pagination,
+.post-row,
+#posts-list h2 {
+    padding: 10px;
+}
+
+.post-row,
+#main-alert,
 #new-post {
     margin: 10px;
 }
+
+
+/* POSTS */
 
 .post-row {
     background-color: #E6E6E6;
     border-radius: 3px;
 }
 
-/* Keep these values consistent so the alignment stays consistent */
-.post-row,
-.pagination,
-footer,
-#posts-list h2 {
-    padding: 10px;
+.post-content {
+    font-size: x-large;
+    font-style: italic;
 }
 
-.post-content {
-    font-style: italic;
-    font-size: x-large;
+.likes-count {
+    margin-left: 0.5rem;
 }
+
+
+/* USER PROFILES */
 
 #user-profile {
-    padding: 20px;
-    margin: 40px 10px 40px 10px;
     border-radius: 3px;
+    margin: 40px 10px 40px 10px;
+    padding: 20px;
 }
 
 #user-profile img {
-    max-width: 75%;
     border-radius: 10px;
+    max-width: 75%;
 }
 
-/* New Post Form */
 
-#submit-post, 
-#save-button  {
+/* POST FORMS AND PSEUDO-FORMS */
+
+#new-post textarea {
+    min-width: 100%;
+    padding: 1rem;
+}
+
+#save-button,
+#submit-post {
     display: block;
     margin-top: 1%;
 }
 
-#new-post label{
-    display: none;
-}
 
-/* Hide message containers until enabled by JS */
-/* .alert {
-    display: none;
-} */
+/* ALERTS */
 
-
+/* DEPENDENCY: if the fade out delay or duration are modified, the timout in displayAlert in network.js must be updated to match */
 .alert {
-    /* Hide alerts by default */
-    display: none;
-
-    /* Automatically fade them out once they are displayed */
-    animation-name: fade_out;
     animation-delay: 10s;
     animation-duration: 2s;
-}
-
-#new-post textarea{
-    min-width: 100%;
-    /* TO DO:  Think about padding units */
-    padding:  1%;
-}
-
-.likes-count{
-    margin-left: 0.5rem;
+    animation-name: fade_out;
+    display: none;
 }
 
 @keyframes fade_out {
     from {
         opacity: 100%;
     }
+
     to {
-        opacity: 0%;
+        opacity: 0;
     }
 }
-
-
-/* RESPONSIVE - LARGER SCREENS */
-
-@media(min-width: 720px) {
-
-    #new-post textarea{
-        max-height: 10%;
-    }
-}
-
-

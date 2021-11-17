@@ -19,10 +19,11 @@ from .models import Post, User
 import time
 
 
-# FORM CLASSES
+
+# CLASSES
+
 
 # New post form
-
 
 class PostForm(forms.ModelForm):
     class Meta:
@@ -34,8 +35,8 @@ class PostForm(forms.ModelForm):
         }
 
 
-# AUTHENTICATION (provided)
-
+# AUTHENTICATION
+# NOTE:  These have been modified slightly from the provided starter file
 
 def login_view(request):
     if request.method == 'POST':
@@ -110,15 +111,30 @@ def register(request):
         })
 
 
-# POSTS
+# PAGES
 
-# Display the home page with the first page of posts
+# Display the home page
+
 def index(request):
     posts = Post.objects.all().order_by('-timestamp').all()
     return paginate_posts(request, '', posts, 'Recent Posts')
 
-# Display the posts followed by the current user
 
+# Display a paginated list of posts
+# CITATION:  Adapted from Vancara example project in Vlad's section
+
+def paginate_posts(request, profile, posts, title, message=None):
+    # Determine the desired page number from the request
+    page_num = request.GET.get('page', 1)
+    # Create the paginator object
+    paginator = Paginator(posts, settings.PAGE_SIZE)
+    # Get the specific page's worth of posts
+    page = paginator.page(page_num)
+    post_form = PostForm()
+    return render(request, 'network/index.html', {'page': page, 'profile': profile, 'title': title, 'post_form': post_form, 'message': message})
+
+
+# Display the posts with authors followed by the current user
 
 @login_required
 def following_posts(request):
@@ -129,77 +145,34 @@ def following_posts(request):
         title = 'Recent Posts - By Users I\'m Following'
     else:
         title = 'You are not following any users'
-    return paginate_posts(request, '', posts, title )
+    return paginate_posts(request, '', posts, title)
 
 
-# Paginate a list of posts
-# CITATION:  Adapted from Vancara example project in Vlad's section
-def paginate_posts(request, profile, posts, title):
-    # Determine the desired page number from the request
-    page_num = request.GET.get('page', 1)
-    # Create the paginator object
-    paginator = Paginator(posts, settings.PAGE_SIZE)
-    # Get the specific page's worth of posts
-    page = paginator.page(page_num)
-    post_form = PostForm()
-    return render(request, 'network/index.html', {'page': page, 'profile': profile, 'title': title, 'post_form': post_form})
+#  Display the profile page for a single user
 
-
-# Create a post
-# NOTE: I opted to handle this with Django instead of JS, since most users will expect to see a refreshed list
-#       of current posts with their new post on top after submitting.  (Like and follow would be expected to happen in situ.)
-
-# TO DO:  Revamp this to submit via JS, update comments above
-
-@login_required
-def post_add(id):
-
-    # If we're posting data, attempt to process the form
-    if request.method == 'POST':
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-            return HttpResponseRedirect(reverse('index'))
-        else:
-            # TO DO:  Load the posts and return to the original context
-            messages.error(
-                request, 'Invalid form entry.  Please fix the issues below and resubmit.')
-            return render(request, 'network/index.html', {
-                'post_form': form
-            })
-    # It somehow we call this function without posting, load the page with a blank new listing form
-    else:
-        return render(request, 'network/index.html', {
-            'post_form': PostForm()
-        })
-
-
-# PROFILES
 def view_profile(request, id):
     # Get the profile details
     try:
         profile = User.objects.get(pk=id)
     # CITATION:  Exception type borrowed from provided views.py in Project 3
     except User.DoesNotExist:
-        # TO DO:  
+        # TO DO:
         # If the profile isn't found, show an error instead of loading the profile page
         return HttpResponse('nope!')
 
-    # Get that user's posts  
+    # Get that user's posts
     posts = Post.objects.filter(author=id).order_by('-timestamp').all()
     # Show the profile page, even if the user has no posts
     return paginate_posts(request, profile, posts, f'Recent Posts by {profile.username}')
 
 
-# API
+# API METHODS
 
 
-# Edit a post
+# Create or edit a post
 
 @login_required
-def update_post(request, id=None):
+def post(request, id=None):
 
     # TEMP FOR TESTING
     time.sleep(1)
@@ -214,13 +187,11 @@ def update_post(request, id=None):
     # CITATION:  Adapted from compose function in provided views.py from Project 3
     if request.method == 'POST':
         post = Post(
-            author = request.user,
-            content = content
+            author=request.user,
+            content=content
         )
         post.save()
-        # TO DO:  Figure out how to get JS to redirect after a successful update
         return JsonResponse({'message': 'Post created successfully.'}, status=201)
-        # return index(request)
     elif request.method == 'PUT':
         try:
             post = Post.objects.get(pk=id)
@@ -241,9 +212,8 @@ def update_post(request, id=None):
     return JsonResponse({'error': 'PUT request required.'}, status=400)
 
 
-
-
-# Toggle whether the current user likes or does not like a post
+# Like or unlike a post
+# NOTE: See design notes in toggleLike in network.js for thoughts on toggling the existing value vs. passing the user's intended action
 
 @login_required
 def toggle_like(request, id):
@@ -272,7 +242,8 @@ def toggle_like(request, id):
         return JsonResponse(post.serialize(), status=200)
 
 
-# Toggle whether the current user does or doesn't follow a user
+# Follow or unfollow a user
+# NOTE:  See design notes in toggleLike in network.js for thoughts on toggling the existing value vs. passing the user's intended action
 
 @login_required
 def toggle_follow(request, id):
@@ -295,9 +266,7 @@ def toggle_follow(request, id):
         # Remove the user from the followers
         profile.followers.remove(request.user)
         return JsonResponse(profile.serialize(), status=200)
-        # return JsonResponse({'error': 'request.user is in profile.followers.all().'}, status=400)
     else:
         # Add the user to the followers
         profile.followers.add(request.user)
         return JsonResponse(profile.serialize(), status=200)
-        # return JsonResponse({'error': 'request.user is NOT in profile.followers.all().'}, status=400)

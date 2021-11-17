@@ -1,191 +1,39 @@
-// TO DO:  Citation comments, etc.
-
 // Initial page load
 document.addEventListener('DOMContentLoaded', function () {
 
   // Add listeners to the Like/Unlike buttons
+  // NOTE:  I use this pattern often, but it seems too short to be worth putting into a function
   document.querySelectorAll('.like-button').forEach(button => {
     button.addEventListener('click', () => toggleLike(button.dataset.post));
   });
 
   // Add listeners to the Edit buttons
   document.querySelectorAll('.edit-button').forEach(button => {
-    button.addEventListener('click', () => editPost(button.dataset.post));
+    button.addEventListener('click', () => loadPost(button.dataset.post));
   });
 
-  // Add a listener to the Follow/Unfollow button
-  // Note: There should only ever be one follow button on the page, but if we just used querySelector, we'd also have to check
-  //       whether the element was present on the page.  querySelectorAll().forEach handles that seamlessly.
-  document.querySelectorAll('#follow-button').forEach( button => {
+  // NOTE: IDs should be unique on the page, but I'm using querySelectorAll for the follow & submit buttons anyway. 
+  //       If we just used querySelector, we'd also have to check whether the element was present on the page to avoid JS errors.  
+  //       querySelectorAll().forEach handles that seamlessly.  The consistency also improves readability.
+
+  // Add a listener to the profile Follow/Unfollow button
+  document.querySelectorAll('#follow-button').forEach(button => {
     button.addEventListener('click', () => toggleFollow(button.dataset.user));
   });
 
-  
-  // Add listeners to the Submit button 
-  document.querySelector('#submit-button').addEventListener('click', newPost);
-  // document.querySelector('#new-post-form').addEventListener('submit', newPost);
+  // Add a listener to the new post Submit button 
+  document.querySelectorAll('#submit-post').forEach(button => {
+    button.addEventListener('click', () => newPost());
+  });
 
 });
-
-
-/** Display an alert message with the specified content and Bootstrap style
- * 
- * @param {object} element - the HTML element object to contain the message
- * @param {string} message - the message to be displayed 
- * @param {string} style - the Bootstrap alert style, ex 'danger' for style 'alert-danger'
- * 
- * For style options see:  https://getbootstrap.com/docs/4.0/components/alerts/
- */
-
-// Note:  I'm using display styling and CSS animations to dismiss the alert.  
-//        A future enhancement could be to use Boostrap's JQuery, but that was too much work for a feature not in the spec.  
-
-function displayAlert(element, message, style) {
-  element.innerHTML = message;
-  element.style.display = 'block';
-  element.classList.add('alert', `alert-${style}`);
-
-  // Pause for the fade out animation, then clear 
-  setTimeout( () => {
-    // Clear the contents before hiding, in case another function tries to append to it
-    element.innerHTML = null;
-    element.style.display = 'none';
-  },
-    // DEPENDENCY:  This must be updated if animation-timing or animation-duration for .alert in styles.css are modified
-    12000
-  )
-
-}
-
-
-/**
- * Like or unlike a post
- * @param {number} id - The ID of the post to be retrieved
- */
-
-// TO DO:  Add comments about toggle vs. passing the action
-
-   function toggleLike(id) {
-
-    // Disable the button the user just clicked on, so they can't click repeatedly while waiting
-    const likeButton = document.querySelector(`.post-row[data-post="${id}"] .like-button`);
-    likeButton.disabled = true;
-
-    // Toggle the post's like status via the API
-    fetch(`/likes/${id}`)
-      .then(response => response.json())
-      .then(post => {
-
-
-        // If successful, receive the new post stats and update what the user sees
-        if (post.error == undefined){
-          // Style the Like Button to reflect the new like status
-          const user_id = JSON.parse(document.getElementById('user_id').textContent);
-          if (post.likers.includes(user_id)) {
-            // Style the button for UNLIKE
-            likeButton.innerHTML = '&#10084;&#65039; <span class="sr-only">Unlike this post</span>';
-          } else {
-            // Style the button for LIKE
-            likeButton.innerHTML = '&#129293; <span class="sr-only">Like this post</span>';
-          }
-          // Update the likes count
-          document.querySelector(`.post-row[data-post="${id}"] .likes-count`).innerHTML = post.likes_count;
-        } else {
-          // Display an alert above the post
-          displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), post.error, 'danger');
-        }
-
-        // Reenable the like/dislike button
-        likeButton.disabled = false;
-      });
-
-   }
-
-
-
-/**
- * Follow or unfollow a user
- * @param {number} id - The ID of the user to be followed
- */
-
-// TO DO:  Make sure that we disable & reenable buttons as needed
-
- function toggleFollow(id) {
-
-    // Disable the button the user just clicked on, so they can't click repeatedly while waiting
-    const followButton = document.querySelector('#follow-button');
-    followButton.disabled = true;
-
-    // Toggle the profile's followed status via the API
-    fetch(`/follows/${id}`)
-      .then(response => response.json())
-      .then(profile => {
-
-
-        // If successful, receive the new following stats and update what the user sees
-        if (profile.error == undefined){
-
-          // Style the Follow/Unfollow button to reflect the new following status
-          // TO DO:  Replace button text with icons?
-          const user_id = JSON.parse(document.getElementById('user_id').textContent);
-          if (profile.followers.includes(user_id)) {
-            // Style the button for UNFOLLOW
-            followButton.innerHTML = 'Unfollow';
-          } else {
-            // Style the button for FOLLOW
-            followButton.innerHTML = 'Follow';
-          }
-          // Update the follow counts
-          document.querySelector('#followers-count').innerHTML = profile.followers_count;
-          document.querySelector('#following-count').innerHTML = profile.following_count;
-
-        } else {
-          // Show a message in the main alert area
-          displayAlert(document.querySelector('#main-alert'), profile.error, 'danger');
-        }
-
-        // Reenable the follow/unfollow button
-        followButton.disabled = false;
-      });
-}
-
-
-/**
- * Provide the user with a JS "form" to edit a post
- * @param {number} id - The ID of the post to be edited
- */
-
- function editPost(id) {
-
-  // Disable the button the user just clicked on, so they can't click repeatedly while waiting
-  const editButton = document.querySelector(`.post-row[data-post="${id}"] .edit-button`);
-  editButton.disabled = true;
-
-  // Replace the content with an edit box, populated with the post contents
-  const contents = document.querySelector(`.post-row[data-post="${id}"] .post-content`);
-  const contentsValue = contents.innerHTML;
-  contents.innerHTML = '';
-  const child = document.createElement('textarea');
-  child.value = contentsValue;
-  contents.appendChild(child);
-
-
-  // Add a save button
-  const saveButton = document.createElement('button');
-  saveButton.classList.add('btn','btn-primary');
-  saveButton.id = 'save-button';
-  saveButton.innerHTML = 'Save';
-  saveButton.addEventListener('click', () => updatePost(id));
-  contents.appendChild(saveButton);
-
-}
 
 
 /**
  * Create a new post
  */
 
-// CITATION:  based on markRead from provided inbox.js in Project 3
+// CITATION:  adapted from markRead from inbox.js provided in Project 3
 
 function newPost() {
 
@@ -195,18 +43,18 @@ function newPost() {
   const content = document.querySelector('#new-post textarea').value.trim();
   const CHARACTER_LIMIT = JSON.parse(document.getElementById('CHARACTER_LIMIT').textContent);
 
-  if (content.length == 0){
+  if (content.length == 0) {
     // Show a message in the main alert area
     displayAlert(document.querySelector('#main-alert'), 'Empty posts are not allowed', 'danger');
 
   } else if (content.length > CHARACTER_LIMIT) {
     // Show a message in the main alert area
     displayAlert(document.querySelector('#main-alert'), `Posts may not exceed ${CHARACTER_LIMIT} characters.`, 'danger');
-      
+
   } else {
-    
+
     // Disable the submit button
-    const saveButton = document.querySelector('#submit-button');
+    const saveButton = document.querySelector('#submit-post');
     saveButton.disabled = true;
 
     // Gather the CSRF token from the Django template
@@ -223,28 +71,56 @@ function newPost() {
         'X-CSRFToken': token
       }
     })
-    .then(response => response.json())
-    .then(post => {
+      .then(response => response.json())
+      .then(post => {
 
-      // If successful, update the page
-      if (post.error == undefined){
+        // If successful, reload the page to get 1st page of the latest posts
+        if (post.error == undefined) {
+          location.reload();
 
-        // TO DO:  Is there a better way to do this?  Any consequences?
-        // Reload the current page to show the most recent posts
-        location.reload();
+        } else {
+          // Show a message in the main alert area
+          displayAlert(document.querySelector('#main-alert'), post.error, 'danger');
 
-      } else {
-        // Show a message in the main alert area
-        displayAlert(document.querySelector('#main-alert'), post.error, 'danger');
-        
-      }
+        }
 
-      // Reenable the like/dislike button to try again
-      saveButton.disabled = false;
+        // Reenable the like/dislike button to try again
+        saveButton.disabled = false;
 
-    });
-  
+      });
+
+  }
+
 }
+
+
+/**
+ * Provide the user with a JS "form" to edit a post
+ * @param {number} id - The ID of the post to be edited
+ */
+
+ function loadPost(id) {
+
+  // Disable the button the user just clicked on, so they can't click repeatedly while waiting
+  const editButton = document.querySelector(`.post-row[data-post="${id}"] .edit-button`);
+  editButton.disabled = true;
+
+  // Replace the content with an edit box, populated with the post contents
+  const contents = document.querySelector(`.post-row[data-post="${id}"] .post-content`);
+  const contentsValue = contents.innerHTML;
+  contents.innerHTML = '';
+  const child = document.createElement('textarea');
+  child.value = contentsValue;
+  contents.appendChild(child);
+
+
+  // Add a save button
+  const saveButton = document.createElement('button');
+  saveButton.classList.add('btn', 'btn-primary');
+  saveButton.id = 'save-button';
+  saveButton.innerHTML = 'Save';
+  saveButton.addEventListener('click', () => updatePost(id));
+  contents.appendChild(saveButton);
 
 }
 
@@ -254,22 +130,22 @@ function newPost() {
  * @param {number} id - The ID of the post to be updated
  */
 
-// CITATION:  based on markRead from provided inbox.js in Project 3
+// CITATION:  based on markRead inbox.js provided in Project 3
 
 function updatePost(id) {
   const content = document.querySelector(`.post-row[data-post="${id}"] textarea`).value.trim();
   const CHARACTER_LIMIT = JSON.parse(document.getElementById('CHARACTER_LIMIT').textContent);
 
-  if (content.length == 0){
+  if (content.length == 0) {
     // Display an alert above the post
     displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), 'Empty posts are not allowed', 'danger');
 
   } else if (content.length > CHARACTER_LIMIT) {
-      // Display an alert above the post
-      displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), `Posts may not exceed ${CHARACTER_LIMIT} characters.`, 'danger');
-      
+    // Display an alert above the post
+    displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), `Posts may not exceed ${CHARACTER_LIMIT} characters.`, 'danger');
+
   } else {
-    
+
     // Disable the save button
     const saveButton = document.querySelector('#save-button');
     saveButton.disabled = true;
@@ -288,32 +164,157 @@ function updatePost(id) {
         'X-CSRFToken': token
       }
     })
+      .then(response => response.json())
+      .then(post => {
+
+
+        // If successful, update the page
+        if (post.error == undefined) {
+
+          // Replace the "form" with the updated post contents
+          const contents = document.querySelector(`.post-row[data-post="${id}"] .post-content`);
+          contents.innerHTML = post.content
+
+          // Reenable the edit button
+          const editButton = document.querySelector(`.post-row[data-post="${id}"] .edit-button`);
+          editButton.disabled = false;
+
+        } else {
+          // Display an alert above the post
+          displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), post.error, 'danger');
+
+        }
+
+        // Reenable the like/dislike button to try again
+        saveButton.disabled = false;
+
+      });
+
+  }
+
+}
+
+
+/**
+ * Like or unlike a post
+ * @param {number} id - The ID of the post
+ */
+
+// DESIGN NOTE: Toggling the existing value means that we might misinterpret the user's intention in some cases. 
+//              Ex: if the user has our app open two browser windows, a like made in one window would still seem
+//              not liked in the other window until refreshed/updated.  So the user might try to like it a second
+//              time, and end up undoing their first like.
+//              Another way to handle that would be to pass the user's intended action (like/unlike) to the API,
+//              but since Vlad suggested the toggle method in section, I assume it's acceptable, and am not prioritizing that.
+
+function toggleLike(id) {
+
+  // Disable the button the user just clicked on, so they can't click repeatedly while waiting
+  const likeButton = document.querySelector(`.post-row[data-post="${id}"] .like-button`);
+  likeButton.disabled = true;
+
+  // Toggle the post's like status via the API
+  fetch(`/likes/${id}`)
     .then(response => response.json())
     .then(post => {
 
-
-      // If successful, update the page
-      if (post.error == undefined){
-
-        // Replace the "form" with the updated post contents
-        const contents = document.querySelector(`.post-row[data-post="${id}"] .post-content`);
-        contents.innerHTML = post.content
-
-        // Reenable the edit button
-        const editButton = document.querySelector(`.post-row[data-post="${id}"] .edit-button`);
-        editButton.disabled = false;
-
+      // If successful, receive the new post stats and update what the user sees
+      if (post.error == undefined) {
+        // Style the Like Button to reflect the new like status
+        const user_id = JSON.parse(document.getElementById('user_id').textContent);
+        if (post.likers.includes(user_id)) {
+          // Style the button for UNLIKE
+          likeButton.innerHTML = '&#10084;&#65039; <span class="sr-only">Unlike this post</span>';
+        } else {
+          // Style the button for LIKE
+          likeButton.innerHTML = '&#129293; <span class="sr-only">Like this post</span>';
+        }
+        // Update the likes count
+        document.querySelector(`.post-row[data-post="${id}"] .likes-count`).innerHTML = post.likes_count;
       } else {
         // Display an alert above the post
         displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), post.error, 'danger');
-        
       }
 
-      // Reenable the like/dislike button to try again
-      saveButton.disabled = false;
-
+      // Reenable the like/dislike button
+      likeButton.disabled = false;
     });
-  
-  }
+
+}
+
+
+/**
+ * Follow or unfollow a user
+ * @param {number} id - The ID of the user to be followed
+ */
+
+// DESIGN NOTE:   This is a very similar function to toggleLike, so I tried merging them, but in the end, I decided to keep them separate.
+//                What we do with the results of the fetch are different, so it's not just performing the same actions with a different set of
+//                querySelectors, innerHTML, and fetch URLs.  The merged version needed branching logic that made it MUCH harder to read.
+//                Plus, keeping the functions separate allows us to change how one is handled in the future without affecting the other.
+//                So this is less elegant up front, but, IMO, a better choice for maintainability and future changes.
+
+function toggleFollow(id) {
+
+  // Disable the button the user just clicked on, so they can't click repeatedly while waiting
+  const followButton = document.querySelector('#follow-button');
+  followButton.disabled = true;
+
+  // Toggle the profile's followed status via the API
+  fetch(`/follows/${id}`)
+    .then(response => response.json())
+    .then(profile => {
+
+
+      // If successful, receive the new following stats and update what the user sees
+      if (profile.error == undefined) {
+
+        // Style the Follow/Unfollow button to reflect the new following status
+        const user_id = JSON.parse(document.getElementById('user_id').textContent);
+        if (profile.followers.includes(user_id)) {
+          followButton.innerHTML = 'Unfollow';
+        } else {
+          followButton.innerHTML = 'Follow';
+        }
+        // Update the follow counts
+        document.querySelector('#followers-count').innerHTML = profile.followers_count;
+        document.querySelector('#following-count').innerHTML = profile.following_count;
+
+      } else {
+        // Show a message in the main alert area
+        displayAlert(document.querySelector('#main-alert'), profile.error, 'danger');
+      }
+
+      // Reenable the follow/unfollow button
+      followButton.disabled = false;
+    });
+}
+
+
+/** Display an alert message in the specified element with the specified content and Bootstrap style
+ * 
+ * @param {object} element - the HTML element object to contain the message
+ * @param {string} message - the message to be displayed 
+ * @param {string} style - the Bootstrap alert style, ex 'danger' for style 'alert-danger'
+ * 
+ * For style options see:  https://getbootstrap.com/docs/4.0/components/alerts/
+ */
+
+// DESIGN NOTE:   I'm using display styling and CSS animations to dismiss the alert.  
+//                It would be cool to use Boostrap's JQuery, but since on-screen messages aren't in the spec, it wasn't a priority. 
+
+function displayAlert(element, message, style) {
+  element.innerHTML = message;
+  element.style.display = 'block';
+  element.classList.add('alert', `alert-${style}`);
+
+  // Pause for the fade out animation, then clear the contents (in case another function displays it before modifying) and remove the element
+  setTimeout(() => {
+    element.innerHTML = null;
+    element.style.display = 'none';
+  },
+    // DEPENDENCY:  This must be updated if animation-timing or animation-duration for .alert in styles.css are modified
+    12000
+  )
 
 }
