@@ -4,9 +4,16 @@
 
 {% block body %}
 
-    {# Placeholder for error messages #}
-    <div id="main-alert" class="alert" role="alert">
+    {# Container for JavaScript fading error messages #}
+    <div id="main-alert-fading" class="alert alert-fade" role="alert">
     </div>
+
+    {# Container for error messages that should persist instead of fading #}
+    {% if message %}
+        <div id="main-alert-persistent" class="alert alert-danger">
+            {{message}}
+        </div>
+    {% endif %}
 
     {# If we're on the profile page, show the profile.  Otherwise, show the post form to authenticated users #}
     {% if profile %}
@@ -35,8 +42,7 @@
 
             </div>
         </div>
-    {% else %}
-        {% if user.is_authenticated %}
+    {% elif show_form and user.is_authenticated %}
         <div id="new-post">
             <!-- NOTE:  The text area doesn't really need to be wrapped in a form, but it makes adding the CSRF token easier -->
             <form id="new-post-form">
@@ -45,7 +51,6 @@
                 <button id="submit-post" class="btn btn-primary">Submit</button>
             </form>
         </div>
-        {% endif %}
     {% endif %}
 
     <div id="posts-list">
@@ -54,8 +59,8 @@
         {% if page %}
             {% for post in page %}
             <div class="post-row" data-post="{{post.id}}">
-                {# Placeholder for post-level error messages #}
-                <div class="alert" role="alert">
+                {# Container for post-level error messages #}
+                <div class="alert alert-fade" role="alert">
                 </div>
                 <div class="post-content">{{post.content}}</div>  
                 <p>By <a href="{% url 'view_profile' post.author.id %}">{{post.author}}</a> on 

@@ -9,13 +9,17 @@
 footer,
 .pagination,
 .post-row,
+#main-alert-persistent,
+#user-profile,
 #posts-list h2 {
     padding: 10px;
 }
 
 .post-row,
-#main-alert,
-#new-post {
+#main-alert-fading,
+#main-alert-persistent,
+#new-post,
+#user-profile {
     margin: 10px;
 }
 
@@ -41,13 +45,16 @@ footer,
 
 #user-profile {
     border-radius: 3px;
-    margin: 40px 10px 40px 10px;
+    /* margin: 40px 10px 40px 10px; */
+    /* margin: 0; */
     padding: 20px;
+    max-width: 98%;
 }
 
 #user-profile img {
     border-radius: 10px;
     max-width: 75%;
+    min-width: 135px;
 }
 
 
@@ -68,8 +75,8 @@ footer,
 /* ALERTS */
 
 /* DEPENDENCY: if the fade out delay or duration are modified, the timout in displayAlert in network.js must be updated to match */
-.alert {
-    animation-delay: 10s;
+.alert-fade {
+    animation-delay: 5s;
     animation-duration: 2s;
     animation-name: fade_out;
     display: none;

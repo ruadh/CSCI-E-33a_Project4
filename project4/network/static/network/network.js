@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // NOTE: IDs should be unique on the page, but I'm using querySelectorAll for the follow & submit buttons anyway. 
-  //       If we just used querySelector, we'd also have to check whether the element was present on the page to avoid JS errors.  
+  //       If we just used querySelector, we'd get JS errors when the element is not present on the page.  
   //       querySelectorAll().forEach handles that seamlessly.  The consistency also improves readability.
 
   // Add a listener to the profile Follow/Unfollow button
@@ -45,11 +45,11 @@ function newPost() {
 
   if (content.length == 0) {
     // Show a message in the main alert area
-    displayAlert(document.querySelector('#main-alert'), 'Empty posts are not allowed', 'danger');
+    displayAlert(document.querySelector('#main-alert-fading'), 'Empty posts are not allowed', 'danger');
 
   } else if (content.length > CHARACTER_LIMIT) {
     // Show a message in the main alert area
-    displayAlert(document.querySelector('#main-alert'), `Posts may not exceed ${CHARACTER_LIMIT} characters.`, 'danger');
+    displayAlert(document.querySelector('#main-alert-fading'), `Posts may not exceed ${CHARACTER_LIMIT} characters.`, 'danger');
 
   } else {
 
@@ -80,7 +80,7 @@ function newPost() {
 
         } else {
           // Show a message in the main alert area
-          displayAlert(document.querySelector('#main-alert'), post.error, 'danger');
+          displayAlert(document.querySelector('#main-alert-fading'), post.error, 'danger');
 
         }
 
@@ -282,7 +282,7 @@ function toggleFollow(id) {
 
       } else {
         // Show a message in the main alert area
-        displayAlert(document.querySelector('#main-alert'), profile.error, 'danger');
+        displayAlert(document.querySelector('#main-alert-fading'), profile.error, 'danger');
       }
 
       // Reenable the follow/unfollow button
@@ -314,7 +314,7 @@ function displayAlert(element, message, style) {
     element.style.display = 'none';
   },
     // DEPENDENCY:  This must be updated if animation-timing or animation-duration for .alert in styles.css are modified
-    12000
+    7000
   )
 
 }

@@ -19,7 +19,6 @@ from .models import Post, User
 import time
 
 
-
 # CLASSES
 
 
@@ -39,6 +38,8 @@ class PostForm(forms.ModelForm):
 # NOTE:  These have been modified slightly from the provided starter file
 
 def login_view(request):
+    """Log in the user"""
+
     if request.method == 'POST':
 
         # Attempt to sign user in
@@ -61,11 +62,15 @@ def login_view(request):
 
 
 def logout_view(request):
+    """Log out the user"""
+
     logout(request)
     return HttpResponseRedirect(reverse('index'))
 
 
 def register(request):
+    """Register a new user"""
+
     # Gather a list of timezones to populate the timezone choice field in the form
     timezones = pytz.common_timezones
 
@@ -113,17 +118,17 @@ def register(request):
 
 # PAGES
 
-# Display the home page
-
 def index(request):
+    """Display the home page with the most recent posts by all users"""
+
     posts = Post.objects.all().order_by('-timestamp').all()
-    return paginate_posts(request, '', posts, 'Recent Posts')
+    return paginate_posts(request, '', posts, 'Recent Posts', None, True)
 
 
-# Display a paginated list of posts
-# CITATION:  Adapted from Vancara example project in Vlad's section
+def paginate_posts(request, profile, posts, title, message=None, show_form=False):
+    """Paginate and display the provided list of posts"""
+    # CITATION:  Adapted from Vancara example project in Vlad's section
 
-def paginate_posts(request, profile, posts, title, message=None):
     # Determine the desired page number from the request
     page_num = request.GET.get('page', 1)
     # Create the paginator object
@@ -131,21 +136,22 @@ def paginate_posts(request, profile, posts, title, message=None):
     # Get the specific page's worth of posts
     page = paginator.page(page_num)
     post_form = PostForm()
-    return render(request, 'network/index.html', {'page': page, 'profile': profile, 'title': title, 'post_form': post_form, 'message': message})
+    return render(request, 'network/index.html', {'page': page, 'profile': profile, 'title': title, 'post_form': post_form, 'message': message, 'show_form': show_form})
 
-
-# Display the posts with authors followed by the current user
 
 @login_required
 def following_posts(request):
+    """Display posts by authors followed by the current user"""
+
     # CITATION:  I got help with the syntax from the Django documentation and also https://stackoverflow.com/a/45768219
     posts = Post.objects.filter(
         author__in=request.user.following.all()).order_by('-timestamp').all()
     if posts.count() > 0:
-        title = 'Recent Posts - By Users I\'m Following'
+        title = 'Recent Posts by Users I\'m Following'
     else:
+        # Since we're
         title = 'You are not following any users'
-    return paginate_posts(request, '', posts, title)
+    return paginate_posts(request, None, posts, title)
 
 
 #  Display the profile page for a single user
@@ -156,9 +162,8 @@ def view_profile(request, id):
         profile = User.objects.get(pk=id)
     # CITATION:  Exception type borrowed from provided views.py in Project 3
     except User.DoesNotExist:
-        # TO DO:
-        # If the profile isn't found, show an error instead of loading the profile page
-        return HttpResponse('nope!')
+        # Show a persistent error
+        return paginate_posts(request, None, '', '', f'User {id} Not Found')
 
     # Get that user's posts
     posts = Post.objects.filter(author=id).order_by('-timestamp').all()
@@ -169,10 +174,9 @@ def view_profile(request, id):
 # API METHODS
 
 
-# Create or edit a post
-
 @login_required
 def post(request, id=None):
+    """Create or edit a post"""
 
     # TEMP FOR TESTING
     time.sleep(1)
@@ -212,11 +216,10 @@ def post(request, id=None):
     return JsonResponse({'error': 'PUT request required.'}, status=400)
 
 
-# Like or unlike a post
-# NOTE: See design notes in toggleLike in network.js for thoughts on toggling the existing value vs. passing the user's intended action
-
 @login_required
 def toggle_like(request, id):
+    """Toggle whether the current user likes or doesn't like a post"""
+    # NOTE: See design notes in toggleLike in network.js for thoughts on toggling the existing value vs. passing the user's intended action
 
     # TEMP FOR TESTING
     time.sleep(1)
@@ -242,11 +245,10 @@ def toggle_like(request, id):
         return JsonResponse(post.serialize(), status=200)
 
 
-# Follow or unfollow a user
-# NOTE:  See design notes in toggleLike in network.js for thoughts on toggling the existing value vs. passing the user's intended action
-
 @login_required
 def toggle_follow(request, id):
+    """Toggle whether the current user follows or doesn't follow another user"""
+    # NOTE:  See design notes in toggleLike in network.js for thoughts on toggling the existing value vs. passing the user's intended action
 
     # TEMP FOR TESTING
     time.sleep(1)
