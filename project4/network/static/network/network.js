@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', function () {
     button.addEventListener('click', () => toggleFollow(button.dataset.user));
   });
 
+  
+  // Add listeners to the Submit button 
+  document.querySelector('#submit-button').addEventListener('click', newPost);
+  // document.querySelector('#new-post-form').addEventListener('submit', newPost);
+
 });
 
 
@@ -175,29 +180,73 @@ function displayAlert(element, message, style) {
 
 }
 
+
 /**
- * Get the value of a particular cookie
- * @param {string} name - The name of the cookie whose value should be returned
+ * Create a new post
  */
 
-// CITATION:  Copied directly from the Django docs: https://docs.djangoproject.com/en/3.2/ref/csrf/
+// CITATION:  based on markRead from provided inbox.js in Project 3
 
-// function getCookie(name) {
-//   let cookieValue = null;
-//   if (document.cookie && document.cookie !== '') {
-//       const cookies = document.cookie.split(';');
-//       for (let i = 0; i < cookies.length; i++) {
-//           const cookie = cookies[i].trim();
-//           // Does this cookie string begin with the name we want?
-//           if (cookie.substring(0, name.length + 1) === (name + '=')) {
-//               cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-//               break;
-//           }
-//       }
-//   }
-//   return cookieValue;
-// }
+function newPost() {
 
+  // Prevent normal form submission, which would refresh the page
+  event.preventDefault();
+
+  const content = document.querySelector('#new-post textarea').value.trim();
+  const CHARACTER_LIMIT = JSON.parse(document.getElementById('CHARACTER_LIMIT').textContent);
+
+  if (content.length == 0){
+    // Show a message in the main alert area
+    displayAlert(document.querySelector('#main-alert'), 'Empty posts are not allowed', 'danger');
+
+  } else if (content.length > CHARACTER_LIMIT) {
+    // Show a message in the main alert area
+    displayAlert(document.querySelector('#main-alert'), `Posts may not exceed ${CHARACTER_LIMIT} characters.`, 'danger');
+      
+  } else {
+    
+    // Disable the submit button
+    const saveButton = document.querySelector('#submit-button');
+    saveButton.disabled = true;
+
+    // Gather the CSRF token from the Django template
+    // CITATION:  Copied directly from Vlad's section slides
+    const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+    // Update the post's contents via the API
+    fetch(`/posts`, {
+      method: 'POST',
+      body: JSON.stringify({
+        content: content
+      }),
+      headers: {
+        'X-CSRFToken': token
+      }
+    })
+    .then(response => response.json())
+    .then(post => {
+
+      // If successful, update the page
+      if (post.error == undefined){
+
+        // TO DO:  Is there a better way to do this?  Any consequences?
+        // Reload the current page to show the most recent posts
+        location.reload();
+
+      } else {
+        // Show a message in the main alert area
+        displayAlert(document.querySelector('#main-alert'), post.error, 'danger');
+        
+      }
+
+      // Reenable the like/dislike button to try again
+      saveButton.disabled = false;
+
+    });
+  
+}
+
+}
 
 
 /**
@@ -265,6 +314,6 @@ function updatePost(id) {
 
     });
   
-}
+  }
 
 }

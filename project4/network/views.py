@@ -3,7 +3,6 @@ import pytz
 
 from django import forms
 from django.db import IntegrityError
-# from django.forms.models import InlineForeignKeyField
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -12,7 +11,6 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-# from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 
 from .models import Post, User
@@ -151,10 +149,10 @@ def paginate_posts(request, profile, posts, title):
 # NOTE: I opted to handle this with Django instead of JS, since most users will expect to see a refreshed list
 #       of current posts with their new post on top after submitting.  (Like and follow would be expected to happen in situ.)
 
-# TO DO:  Revamp this to submit via JS
+# TO DO:  Revamp this to submit via JS, update comments above
 
 @login_required
-def post_add(request):
+def post_add(id):
 
     # If we're posting data, attempt to process the form
     if request.method == 'POST':
@@ -176,7 +174,6 @@ def post_add(request):
         return render(request, 'network/index.html', {
             'post_form': PostForm()
         })
-
 
 
 # PROFILES
@@ -202,7 +199,7 @@ def view_profile(request, id):
 # Edit a post
 
 @login_required
-def update_post(request, id):
+def update_post(request, id=None):
 
     # TEMP FOR TESTING
     time.sleep(1)
@@ -214,18 +211,27 @@ def update_post(request, id):
     if len(content) > 256:
         return JsonResponse({'error': f'Posts may not exceed {settings.CHARACTER_LIMIT} characters.'}, status=400)
 
-    try:
-        post = Post.objects.get(pk=id)
-    except Post.DoesNotExist:
-        return JsonResponse({'error': 'Post not found.'}, status=404)
+    # CITATION:  Adapted from compose function in provided views.py from Project 3
+    if request.method == 'POST':
+        post = Post(
+            author = request.user,
+            content = content
+        )
+        post.save()
+        # TO DO:  Figure out how to get JS to redirect after a successful update
+        return JsonResponse({'message': 'Post created successfully.'}, status=201)
+        # return index(request)
+    elif request.method == 'PUT':
+        try:
+            post = Post.objects.get(pk=id)
+        except Post.DoesNotExist:
+            return JsonResponse({'error': 'Post not found.'}, status=404)
 
-    # Don't allow users to edit others' posts
-    # NOTE:  I'm not 100% sure error 400 is correct, but I chose it based on: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
-    if request.user != post.author:
-        return JsonResponse({'error': 'You may not edit this post because you are not its author.'}, status=400)
+        # Don't allow users to edit others' posts
+        # NOTE:  I'm not 100% sure error 400 is correct, but I chose it based on: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+        if request.user != post.author:
+            return JsonResponse({'error': 'You may not edit this post because you are not its author.'}, status=400)
 
-
-    if request.method == 'PUT':
         # Update the post contents and save it
         post.content = content
         post.save()

@@ -38,10 +38,11 @@
     {% else %}
         {% if user.is_authenticated %}
         <div id="new-post">
-            <form action="{% url 'post_add' %}" method="post">
+            <!-- NOTE:  The text area doesn't really need to be wrapped in a form, but it makes adding the CSRF token easier -->
+            <form id="new-post-form">
                 {% csrf_token %}
-                {{ post_form }}
-                <input id="submit-post" class="btn btn-primary" type="submit">
+                <textarea placeholder="What's on your mind?"></textarea>
+                <button id="submit-button" class="btn btn-primary">Submit</button>
             </form>
         </div>
         {% endif %}

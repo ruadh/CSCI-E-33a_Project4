@@ -12,7 +12,8 @@ urlpatterns = [
 
     # Navigation
     path("", views.index, name="index"),
-    path("posts", views.post_add, name="post_add"),
+    # path("posts", views.post_add, name="post_add"),
+    path("posts", views.update_post, name="new_post"),
     path("following", views.following_posts, name="following"),
     path("users/<int:id>", views.view_profile, name="view_profile"),
 
