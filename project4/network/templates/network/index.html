@@ -27,7 +27,7 @@
 
             <div class="col-sm-9">
                 <h2>{{profile.username}}</h2>
-                <p>Followers: <span id="followers-count">{{profile.followers_count}}</span></p>
+                <p>Followers: <span id="followers-count">{{profile.followers.count}}</span></p>
                 <p>Following: <span id="following-count">{{profile.following_count}}</span></p>
                 {% if profile != user and user.is_authenticated %}
                     <button id="follow-button" class="btn btn-light" data-user="{{profile.id}}">
@@ -85,7 +85,7 @@
                             <button class="edit-button btn btn-primary" data-post="{{post.id}}" title="Edit this post">&#9999;&#65039;
                                 <span class="sr-only">Edit this post</span></button>
                     {% endif %}
-                    <span class="likes-count">{{post.likes_count}}</span> Like{{ post.likes_count|pluralize }}
+                    <span class="likes-count">{{post.liker.count}} Like{{ post.liker.count|pluralize }}</span>
                 </p>
             </div>
         {% endfor %}

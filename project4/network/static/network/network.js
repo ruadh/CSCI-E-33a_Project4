@@ -2,7 +2,6 @@
 document.addEventListener('DOMContentLoaded', function () {
 
   // Add listeners to the Like/Unlike buttons
-  // NOTE:  I use this pattern often, but it seems too short to be worth putting into a function
   document.querySelectorAll('.like-button').forEach(button => {
     button.addEventListener('click', () => toggleLike(button.dataset.post));
   });
@@ -72,6 +71,8 @@ function newPost() {
 
         } else {
           // Show a message in the main alert area
+          // DESIGN NOTE:  I'm repeating a queryselector, but I think that's better than storing the object,
+          //                since this block will not usually be executed - only if there's an error.
           displayAlert(document.querySelector('#main-alert-fading'), post.error, 'danger');
 
         }
@@ -128,9 +129,6 @@ function loadPost(id) {
 
 function updatePost(id) {
 
-  // const content = document.querySelector(`.post-row[data-post="${id}"] textarea`).value.trim();
-  // const CHARACTER_LIMIT = JSON.parse(document.getElementById('CHARACTER_LIMIT').textContent);
-
   // Gather and validate the content
   const content = document.querySelector(`.post-row[data-post="${id}"] textarea`).value.trim();
   const valid = validate(content, document.querySelector(`.post-row[data-post="${id}"] .alert`));
@@ -171,6 +169,8 @@ function updatePost(id) {
 
         } else {
           // Display an alert above the post
+          // DESIGN NOTE:  I'm repeating a queryselector, but I think that's better than storing the object,
+          //               since this block will not usually be executed - only if there's an error.
           displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), post.error, 'danger');
 
         }
@@ -192,9 +192,9 @@ function updatePost(id) {
 // DESIGN NOTES: Toggling the existing value means that we might misinterpret the user's intention in some cases. 
 //               Ex: if the user has our app open two browser windows, a like made in one window would still seem
 //               not liked in the other window until refreshed/updated.  So the user might try to like it a second
-//               time, and end up undoing their first like.
-//               Another way to handle that would be to pass the user's intended action (like/unlike) to the API,
-//               but since Vlad suggested the toggle method in section, I assume it's acceptable, and am not prioritizing that.
+//               time, and end up undoing their first like.  Another way to handle that would be to pass the user's 
+//               intended action (like/unlike) to the API, but since Vlad suggested the toggle method in section,
+//               I assume it's acceptable, and am not prioritizing covering that scenario.
 
 function toggleLike(id) {
 
@@ -210,8 +210,8 @@ function toggleLike(id) {
       // If successful, receive the new post stats and update what the user sees
       if (post.error == undefined) {
         // Style the Like Button to reflect the new like status
-        const user_id = JSON.parse(document.getElementById('user_id').textContent);
-        if (post.likers.includes(user_id)) {
+        const userId = JSON.parse(document.getElementById('user_id').textContent);
+        if (post.likers.includes(userId)) {
           // Style the button for UNLIKE
           likeButton.innerHTML = '&#10084;&#65039; <span class="sr-only">Unlike this post</span>';
         } else {
@@ -219,7 +219,7 @@ function toggleLike(id) {
           likeButton.innerHTML = '&#129293; <span class="sr-only">Like this post</span>';
         }
         // Update the likes count
-        document.querySelector(`.post-row[data-post="${id}"] .likes-count`).innerHTML = post.likes_count;
+        document.querySelector(`.post-row[data-post="${id}"] .likes-count`).innerHTML = `${post.likers.length} ${post.likers.length !== 1 ? 'Likes' : 'Like'}`;
       } else {
         // Display an alert above the post
         displayAlert(document.querySelector(`.post-row[data-post="${id}"] .alert`), post.error, 'danger');
@@ -237,11 +237,9 @@ function toggleLike(id) {
  * @param {number} id - The ID of the user to be followed
  */
 
-// DESIGN NOTE:   This is a very similar function to toggleLike, so I tried merging them, but in the end, I decided to keep them separate.
-//                What we do with the results of the fetch are different, so it's not just performing the same actions with a different set of
-//                querySelectors, innerHTML, and fetch URLs.  The merged version needed branching logic that made it MUCH harder to read.
-//                Plus, keeping the functions separate allows us to change how one is handled in the future without affecting the other.
-//                So this is less elegant up front, but, IMO, a better choice for maintainability and future changes.
+// DESIGN NOTE:   This is very similar to toggleLike, so I tried merging them, but decided to keep them separate.
+//                The fetch is similar, but they interact with the DOM differently, and the merged version's
+//                branching logic was harder to read, which is bad for maintainability.
 
 function toggleFollow(id) {
 
@@ -259,14 +257,14 @@ function toggleFollow(id) {
       if (profile.error == undefined) {
 
         // Style the Follow/Unfollow button to reflect the new following status
-        const user_id = JSON.parse(document.getElementById('user_id').textContent);
-        if (profile.followers.includes(user_id)) {
+        const userId = JSON.parse(document.getElementById('user_id').textContent);
+        if (profile.followers.includes(userId)) {
           followButton.innerHTML = 'Unfollow';
         } else {
           followButton.innerHTML = 'Follow';
         }
         // Update the follow counts
-        document.querySelector('#followers-count').innerHTML = profile.followers_count;
+        document.querySelector('#followers-count').innerHTML = profile.followers.length;
         document.querySelector('#following-count').innerHTML = profile.following_count;
 
       } else {
@@ -293,19 +291,19 @@ function toggleFollow(id) {
  */
 
 // DESIGN NOTE:   I'm using display styling and CSS animations to dismiss the alert.  
-//                It would be cool to use Boostrap's JQuery, but since on-screen messages aren't in the spec, it wasn't a priority. 
+//                It would be cool to use Boostrap's JQuery, but since this isn't in the spec, it wasn't a priority
 
 function displayAlert(element, message, style) {
   element.innerHTML = message;
   element.style.display = 'block';
   element.classList.add('alert', `alert-${style}`);
 
-  // Pause for the fade out animation, then clear the contents (in case another function displays it before modifying) and remove the element
+  // Pause for the fade out animation, then clear the contents and remove the element
   setTimeout(() => {
       element.innerHTML = null;
       element.style.display = 'none';
     },
-    // DEPENDENCY:  This must be updated if animation-timing or animation-duration for .alert in styles.css are modified
+    // DEPENDENCY:  This must be updated if the animation timing or duration for .alert in styles.css are modified
     7000
   );
 

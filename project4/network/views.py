@@ -1,39 +1,25 @@
+"""Python code for the Django Network app"""
+
 # CITATION:     Import sorting by iSort, as recommended by the Django contributors documentation:
-#               https://docs.djangoproject.com/en/dev/internals/contributing/writing-code/coding-style/
+#               https://github.com/PyCQA/isort#readme
 
 import json
 # TEMP FOR TESTING:
 import time
 
 import pytz
-from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 
 from .models import Post, User
-
-
-# CLASSES
-
-
-# New post form
-
-class PostForm(forms.ModelForm):
-    class Meta:
-        model = Post
-        fields = ['content']
-        widgets = {
-            'content': forms.Textarea(
-                attrs={'placeholder': 'What\'s on your mind?'})
-        }
 
 
 # AUTHENTICATION
@@ -124,25 +110,27 @@ def index(request):
     """Display the home page with the most recent posts by all users"""
 
     posts = Post.objects.all().order_by('-timestamp').all()
-    return paginate_posts(request, '', posts, 'Recent Posts', None, True)
+    return paginate_posts(request, None, posts, 'Recent Posts', None, True)
 
 
 def paginate_posts(request, profile, posts, title, message=None, show_form=False):
     """Paginate and display the provided list of posts"""
     # CITATION:  Adapted from Vancara example project in Vlad's section
 
-    # Determine the desired page number from the request
-    page_num = request.GET.get('page', 1)
-    # Create the paginator object
-    paginator = Paginator(posts, settings.PAGE_SIZE)
-    # Get the specific page's worth of posts
-    page = paginator.page(page_num)
-    post_form = PostForm()
+    # Make sure there are posts before we try to paginate them
+    if posts is None:
+        page = None
+    else:
+        # Determine the desired page number from the request
+        page_num = request.GET.get('page', 1)
+        # Create the paginator object
+        paginator = Paginator(posts, settings.PAGE_SIZE)
+        # Get the specific page's worth of posts
+        page = paginator.page(page_num)
     return render(request, 'network/index.html', {
         'page': page,
         'profile': profile,
         'title': title,
-        'post_form': post_form,
         'message': message,
         'show_form': show_form
     })
@@ -152,7 +140,7 @@ def paginate_posts(request, profile, posts, title, message=None, show_form=False
 def following_posts(request):
     """Display posts by authors followed by the current user"""
 
-    # CITATION:  I got help with the syntax from the Django documentation and also https://stackoverflow.com/a/45768219
+    # CITATION:  I got help syntax help from the Django documentation and also https://stackoverflow.com/a/45768219
     posts = Post.objects.filter(
         author__in=request.user.following.all()).order_by('-timestamp').all()
     if posts.count() > 0:
@@ -163,16 +151,15 @@ def following_posts(request):
     return paginate_posts(request, None, posts, title)
 
 
-#  Display the profile page for a single user
-
 def view_profile(request, id):
+    """Display the profile page for a single user"""
     # Get the profile details
     try:
         profile = User.objects.get(pk=id)
     # CITATION:  Exception type borrowed from provided views.py in Project 3
     except User.DoesNotExist:
         # Show a persistent error
-        return paginate_posts(request, None, '', '', f'User {id} Not Found')
+        return paginate_posts(request, None, None, '', f'User {id} Not Found')
 
     # Get that user's posts
     posts = Post.objects.filter(author=id).order_by('-timestamp').all()
@@ -184,7 +171,7 @@ def view_profile(request, id):
 
 
 @login_required
-def post(request, id=None):
+def save_post(request, id=None):
     """Create or edit a post"""
 
     # TEMP FOR TESTING
