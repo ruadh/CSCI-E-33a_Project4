@@ -4,8 +4,6 @@
 #               https://github.com/PyCQA/isort#readme
 
 import json
-# TEMP FOR TESTING:
-import time
 
 import pytz
 from django.conf import settings
@@ -136,19 +134,20 @@ def paginate_posts(request, profile, posts, title, message=None, show_form=False
     })
 
 
-@login_required
 def following_posts(request):
     """Display posts by authors followed by the current user"""
 
-    # CITATION:  I got help syntax help from the Django documentation and also https://stackoverflow.com/a/45768219
-    posts = Post.objects.filter(
-        author__in=request.user.following.all()).order_by('-timestamp').all()
-    if posts.count() > 0:
-        title = 'Recent Posts by Users I\'m Following'
+    if request.user.is_authenticated:
+        # CITATION:  I got help syntax help from the Django documentation and also https://stackoverflow.com/a/45768219
+        posts = Post.objects.filter(
+            author__in=request.user.following.all()).order_by('-timestamp').all()
+        if posts.count() > 0:
+            return paginate_posts(request, None, posts, 'Recent Posts by Users I\'m Following')
+        else:
+            return paginate_posts(request, None, posts, '', 'You are not following any users')
     else:
-        # Since we're
-        title = 'You are not following any users'
-    return paginate_posts(request, None, posts, title)
+
+        return paginate_posts(request, None, None, '', 'Error:  You are not authorized to access this page.')
 
 
 def view_profile(request, id):
@@ -173,9 +172,6 @@ def view_profile(request, id):
 @login_required
 def save_post(request, id=None):
     """Create or edit a post"""
-
-    # TEMP FOR TESTING
-    time.sleep(1)
 
     # Validate the content  (also checked on the frontend, but just to be safe)
     content = json.loads(request.body).get('content').strip()
@@ -217,9 +213,6 @@ def toggle_like(request, id):
     """Toggle whether the current user likes or doesn't like a post"""
     # NOTE: See design notes in toggleLike in network.js for thoughts on toggling the value vs. passing the action
 
-    # TEMP FOR TESTING
-    time.sleep(1)
-
     try:
         post = Post.objects.get(pk=id)
     except Post.DoesNotExist:
@@ -244,9 +237,6 @@ def toggle_like(request, id):
 def toggle_follow(request, id):
     """Toggle whether the current user follows or doesn't follow another user"""
     # NOTE:  See design notes in toggleLike in network.js for thoughts on toggling the value vs. passing the action
-
-    # TEMP FOR TESTING
-    time.sleep(1)
 
     try:
         profile = User.objects.get(pk=id)

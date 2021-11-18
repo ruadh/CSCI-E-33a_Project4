@@ -25,7 +25,8 @@ class User(AbstractUser):
         return f'{self.username}'
 
     # CITATION:     Adapted from provided models.py in Project 3
-    # DESIGN NOTE:  The followers list is not needed at this time, so I am only passing the count
+    # DESIGN NOTE:  The followers list is not needed at this time, so I am only passing the count.
+    #               It could be added to the JSON object later if needed.
     def serialize(self):
         """Returns a JSON object containing the user's followers list and following stats"""
         return {
